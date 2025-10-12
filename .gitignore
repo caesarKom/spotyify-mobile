@@ -2,3 +2,4 @@ backend/node_modules/
 backend/.git/
 
 backend/.env*
+backend/uploads/*

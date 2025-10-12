@@ -23,10 +23,10 @@ app.use(helmet());
 
 // CORS configuration for React Native
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: "*",
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-otp-token']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-otp-token','token']
 }));
 
 // Rate limiting
@@ -57,17 +57,18 @@ app.get('/api/health', (req, res) => {
   res.json({ message: 'API działa poprawnie', timestamp: new Date().toLocaleString() });
 });
 
-// Error handling middleware
-app.use(errorHandler);
 
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Endpoint not found' });
 });
 
+// Error handling middleware
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port: ${PORT}`);
+  console.log(`Server running on ${process.env.BASE_URL}`);
   console.log(`Tryb: ${process.env.NODE_ENV}`);
 });

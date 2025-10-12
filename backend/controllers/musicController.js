@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 // Pobieranie wszystkich utworów (publicznych)
-const getAllMusic = async (req, res, next) => {
+const getAllMusic = async (req, res) => {
   try {
     const { page = 1, limit = 20, search, genre, artist } = req.query;
     const pageNum = parseInt(page);
@@ -38,7 +38,7 @@ const getAllMusic = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: music,
+      music,
       pagination: {
         currentPage: pageNum,
         totalPages: Math.ceil(total / limitNum),
@@ -47,7 +47,7 @@ const getAllMusic = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.log("Error get all miusic ", error)
   }
 };
 
@@ -85,7 +85,8 @@ const getMusicById = async (req, res, next) => {
 };
 
 // Upload nowego utworu
-const uploadMusic = async (req, res, next) => {
+const uploadMusic = async (req, res) => {
+
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -95,7 +96,7 @@ const uploadMusic = async (req, res, next) => {
     }
 
     const { title, artist, album, genre, tags } = req.body;
-
+    const filename = path.basename(req.file.path);
     // Walidacja wymaganych pól
     if (!title || !artist) {
       // Usuń plik jeśli walidacja nie powiedzie się
@@ -118,7 +119,7 @@ const uploadMusic = async (req, res, next) => {
       artist,
       album,
       genre,
-      filePath: req.file.path,
+      filePath: `${process.env.BASE_URL}/uploads/music/${filename}`,
       fileSize: req.file.size,
       mimeType: req.file.mimetype,
       uploadedBy: req.user._id,
@@ -138,12 +139,12 @@ const uploadMusic = async (req, res, next) => {
     if (req.file) {
       fs.unlinkSync(req.file.path);
     }
-    next(error);
+    console.log("Error upload music ", error)
   }
 };
 
 // Upload okładki utworu
-const uploadCoverImage = async (req, res, next) => {
+const uploadCoverImage = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -181,9 +182,9 @@ const uploadCoverImage = async (req, res, next) => {
         fs.unlinkSync(oldCoverPath);
       }
     }
-
+    const filename = path.basename(req.file.path);
     // Zaktualizuj okładkę
-    music.coverImage = req.file.path;
+    music.coverImage = `${process.env.BASE_URL}/uploads/images/${filename}`,
     await music.save();
 
     res.status(200).json({
@@ -197,7 +198,7 @@ const uploadCoverImage = async (req, res, next) => {
     if (req.file) {
       fs.unlinkSync(req.file.path);
     }
-    next(error);
+    console.log("Error upload image ", error)
   }
 };
 

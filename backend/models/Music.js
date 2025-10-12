@@ -110,7 +110,7 @@ musicSchema.virtual('formattedDuration').get(function() {
 
 // Wirtualne pole dla liczby polubień
 musicSchema.virtual('likeCount').get(function() {
-  return this.likes.length;
+  return this.likes?.length;
 });
 
 // Konfiguracja serializacji

@@ -4,11 +4,12 @@ const path = require('path');
 const fs = require('fs');
 
 // Pobieranie profilu użytkownika
-const getProfile = async (req, res, next) => {
+const getProfile = async (req, res) => {
+
   try {
     const user = await User.findById(req.user._id)
       .populate('preferences.recentlyPlayed', 'title artist coverImage')
-      .populate('preferences.playlists', 'name description coverImage');
+     //.populate('preferences.playlists', 'name description coverImage');
 
     if (!user) {
       return res.status(404).json({
@@ -32,7 +33,7 @@ const getProfile = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.log("Error get profile ", error)
   }
 };
 

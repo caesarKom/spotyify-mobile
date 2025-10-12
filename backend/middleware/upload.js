@@ -37,14 +37,14 @@ const imageStorage = multer.diskStorage({
 
 // Filtr plików muzycznych
 const musicFilter = (req, file, cb) => {
-  const allowedTypes = /mp3|wav|flac|m4a|aac|ogg/;
+  const allowedTypes = /mp3|wav|mpeg|flac|m4a|aac|ogg/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = allowedTypes.test(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error('Dozwolone są tylko pliki audio (MP3, WAV, FLAC, M4A, AAC, OGG)'));
+    cb(new Error('Dozwolone są tylko pliki audio (MP3, MPEG, WAV, FLAC, M4A, AAC, OGG)'));
   }
 };
 

@@ -28,7 +28,7 @@ const validateUsername = (username) => {
 };
 
 // Rejestracja nowego użytkownika
-const register = async (req, res, next) => {
+const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -118,12 +118,12 @@ const register = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.log("Error register user", error)
   }
 };
 
 // Logowanie użytkownika
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -176,16 +176,16 @@ const login = async (req, res, next) => {
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
-        profile: user.profile
+        //profile: user.profile
       }
     });
   } catch (error) {
-    next(error);
+    console.log("Error to login", error)
   }
 };
 
 // Weryfikacja OTP
-const verifyOTP = async (req, res, next) => {
+const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
@@ -247,12 +247,12 @@ const verifyOTP = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    console.log("Error verify otp", error)
   }
 };
 
 // Ponowne wysłanie OTP
-const resendOTP = async (req, res, next) => {
+const resendOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -297,15 +297,16 @@ const resendOTP = async (req, res, next) => {
       message: 'Nowy kod OTP został wysłany na Twój email'
     });
   } catch (error) {
-    next(error);
+    console.log("Error resend otp", error)
   }
 };
 
 // Odświeżanie tokena
-const refreshToken = async (req, res, next) => {
+const refreshToken = async (req, res) => {
+  console.log("Start refresh token api")
   try {
     const user = req.user;
-    
+   
     const token = generateToken(user._id);
 
     res.status(200).json({
@@ -316,16 +317,16 @@ const refreshToken = async (req, res, next) => {
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
-        profile: user.profile
+        //profile: user.profile
       }
     });
   } catch (error) {
-    next(error);
+    console.log("Error refresh token", error)
   }
 };
 
 // Wylogowanie (opcjonalne - w React Native zazwyczaj po prostu usuwamy token z pamięci)
-const logout = async (req, res, next) => {
+const logout = async (req, res) => {
   try {
     // W przyszłości można dodać czarną listę tokenów
     res.status(200).json({
@@ -333,7 +334,7 @@ const logout = async (req, res, next) => {
       message: 'Wylogowano pomyślnie'
     });
   } catch (error) {
-    next(error);
+    console.log("Error log out", error)
   }
 };
 
