@@ -1,15 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const playlistSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Nazwa playlisty jest wymagana'],
+    required: [true, 'Playlist name is required'],
     trim: true,
-    maxlength: [100, 'Nazwa playlisty nie może przekraczać 100 znaków']
+    maxlength: [100, 'The playlist name cannot exceed 100 characters.']
   },
   description: {
     type: String,
-    maxlength: [500, 'Opis nie może przekraczać 500 znaków']
+    maxlength: [500, 'The description cannot exceed 500 characters.']
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -39,29 +39,28 @@ const playlistSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
-
-// Indeksy
+// Indexs
 playlistSchema.index({ owner: 1 });
 playlistSchema.index({ isPublic: 1 });
 playlistSchema.index({ name: 'text', description: 'text' });
 
-// Wirtualne pole dla liczby utworów
+// Virtual field for the number of tracks
 playlistSchema.virtual('trackCount').get(function() {
   return this.tracks.length;
 });
 
-// Wirtualne pole dla liczby obserwujących
+// Virtual field for follower count
 playlistSchema.virtual('followerCount').get(function() {
   return this.followers.length;
 });
 
-// Wirtualne pole dla całkowitego czasu trwania
+// Virtual field for total duration
 playlistSchema.virtual('totalDuration').get(function() {
-  // To będzie obliczane dynamicznie przy pobieraniu playlisty
+  // This will be calculated dynamically when downloading the playlist
   return 0;
 });
 
-// Metoda do dodawania utworów
+// Method for adding songs
 playlistSchema.methods.addTrack = function(musicId) {
   if (!this.tracks.includes(musicId)) {
     this.tracks.push(musicId);
@@ -70,13 +69,12 @@ playlistSchema.methods.addTrack = function(musicId) {
   return Promise.resolve(this);
 };
 
-// Metoda do usuwania utworów
 playlistSchema.methods.removeTrack = function(musicId) {
   this.tracks = this.tracks.filter(id => !id.equals(musicId));
   return this.save();
 };
 
-// Metoda do obserwowania playlisty
+// Method to follow a playlist
 playlistSchema.methods.follow = function(userId) {
   if (!this.followers.includes(userId)) {
     this.followers.push(userId);
@@ -85,13 +83,11 @@ playlistSchema.methods.follow = function(userId) {
   return Promise.resolve(this);
 };
 
-// Metoda do przestania obserwowania
 playlistSchema.methods.unfollow = function(userId) {
   this.followers = this.followers.filter(id => !id.equals(userId));
   return this.save();
 };
 
-// Konfiguracja serializacji
 playlistSchema.set('toJSON', {
   virtuals: true,
   transform: function(doc, ret) {
@@ -99,4 +95,4 @@ playlistSchema.set('toJSON', {
   }
 });
 
-module.exports = mongoose.model('Playlist', playlistSchema);
+export default mongoose.model('Playlist', playlistSchema);

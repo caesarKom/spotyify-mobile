@@ -1,6 +1,6 @@
-const nodemailer = require("nodemailer")
+import nodemailer from "nodemailer"
 
-class EmailService {
+export default class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -16,7 +16,7 @@ class EmailService {
     })
   }
 
-  // Metoda do wysyłania OTP
+  // Send OTP
   async sendOTP(email, otp, username = "") {
     try {
       const mailOptions = {
@@ -37,7 +37,7 @@ class EmailService {
                 <h3 style="color: #667eea; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h3>
               </div>
               
-              <p><strong>Ten kod jest ważny przez 10 minut.</strong></p>
+              <p><strong>Ten kod jest ważny przez 30 minut.</strong></p>
               
               <p>Jeśli nie rejestrowałeś się w naszej aplikacji, zignoruj tę wiadomość.</p>
               
@@ -154,5 +154,3 @@ class EmailService {
     }
   }
 }
-
-module.exports = new EmailService()

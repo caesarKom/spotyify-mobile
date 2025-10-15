@@ -1,40 +1,43 @@
-const Music = require('../models/Music');
-const User = require('../models/User');
-const path = require('path');
-const fs = require('fs');
+import Music from "../models/Music.js"
+import User from "../models/User.js"
+import path from "path"
+import fs from "fs"
+import { fileURLToPath } from 'url';
 
-// Pobieranie wszystkich utworów (publicznych)
-const getAllMusic = async (req, res) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Get all songs (public)
+export const getAllMusic = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, genre, artist } = req.query;
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-    const skip = (pageNum - 1) * limitNum;
+    const { page = 1, limit = 20, search, genre, artist } = req.query
+    const pageNum = parseInt(page)
+    const limitNum = parseInt(limit)
+    const skip = (pageNum - 1) * limitNum
 
-    // Budowanie filtrów
-    const filters = { isPublic: true };
-    
+    const filters = { isPublic: true }
+
     if (search) {
-      filters.$text = { $search: search };
-    }
-    
-    if (genre) {
-      filters.genre = new RegExp(genre, 'i');
-    }
-    
-    if (artist) {
-      filters.artist = new RegExp(artist, 'i');
+      filters.$text = { $search: search }
     }
 
-    // Pobierz utwory z paginacją
+    if (genre) {
+      filters.genre = new RegExp(genre, "i")
+    }
+
+    if (artist) {
+      filters.artist = new RegExp(artist, "i")
+    }
+
+    // Download songs with pagination
     const music = await Music.find(filters)
-      .populate('uploadedBy', 'username')
+      .populate("uploadedBy", "username")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
 
-    // Policz całkowitą liczbę utworów
-    const total = await Music.countDocuments(filters);
+    // Calculate the total number of songs
+    const total = await Music.countDocuments(filters)
 
     res.status(200).json({
       success: true,
@@ -43,372 +46,382 @@ const getAllMusic = async (req, res) => {
         currentPage: pageNum,
         totalPages: Math.ceil(total / limitNum),
         totalItems: total,
-        itemsPerPage: limitNum
-      }
-    });
+        itemsPerPage: limitNum,
+      },
+    })
   } catch (error) {
     console.log("Error get all miusic ", error)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Pobieranie pojedynczego utworu
-const getMusicById = async (req, res, next) => {
+export const getMusicById = async (req, res) => {
   try {
-    const { id } = req.params;
-    
+    const { id } = req.params
+
     const music = await Music.findById(id)
-      .populate('uploadedBy', 'username')
-      .populate('likes', 'username');
+      .populate("uploadedBy", "username")
+      .populate("likes", "username")
 
     if (!music) {
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found.",
+      })
     }
 
-    // Sprawdź dostęp (publiczny lub własny)
-    if (!music.isPublic && music.uploadedBy._id.toString() !== req.user._id.toString()) {
+    // Check access (public or private)
+    if (
+      !music.isPublic &&
+      music.uploadedBy._id.toString() !== req.user.userId.toString()
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'Brak dostępu do tego utworu'
-      });
+        message: "No access to this track",
+      })
     }
 
     res.status(200).json({
       success: true,
-      data: music
-    });
-  } catch (error) {
-    next(error);
+      data: music,
+    })
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Upload nowego utworu
-const uploadMusic = async (req, res) => {
-
+export const uploadMusic = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'Plik jest wymagany'
-      });
+        message: "File is required",
+      })
     }
 
-    const { title, artist, album, genre, tags } = req.body;
-    const filename = path.basename(req.file.path);
-    // Walidacja wymaganych pól
+    const { title, artist, album, genre, tags } = await req.body
+
+    const fileName = path.basename(req.file.path)
+
     if (!title || !artist) {
-      // Usuń plik jeśli walidacja nie powiedzie się
-      fs.unlinkSync(req.file.path);
+      // Delete file if validation fails
+      fs.unlinkSync(req.file.path)
       return res.status(400).json({
         success: false,
-        message: 'Tytuł i artysta są wymagani'
-      });
+        message: "Title and artist are required",
+      })
     }
 
-    // Przygotuj tagi
-    let tagArray = [];
+    // Prepare tags
+    let tagArray = []
     if (tags) {
-      tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      tagArray = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag)
     }
 
-    // Stwórz nowy utwór
     const music = await Music.create({
       title,
       artist,
       album,
       genre,
-      filePath: `${process.env.BASE_URL}/uploads/music/${filename}`,
+      filePath: `${process.env.BASE_URL}/uploads/music/${fileName}`,
       fileSize: req.file.size,
       mimeType: req.file.mimetype,
-      uploadedBy: req.user._id,
-      tags: tagArray
-    });
+      uploadedBy: req.user.userId,
+      tags: tagArray,
+    })
 
-    // Populuj dane użytkownika
-    await music.populate('uploadedBy', 'username');
+    await music.populate("uploadedBy", "username")
 
     res.status(201).json({
       success: true,
-      message: 'Utwór został przesłany pomyślnie',
-      data: music
-    });
+      message: "The song was uploaded successfully",
+      data: music,
+    })
   } catch (error) {
-    // Usuń plik w przypadku błędu
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
     console.log("Error upload music ", error)
+    if (req.file) {
+      fs.unlinkSync(req.file.path)
+    }
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Upload okładki utworu
-const uploadCoverImage = async (req, res) => {
+export const uploadCoverImage = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'Plik obrazu jest wymagany'
-      });
+        message: "Image file is required",
+      })
     }
 
-    // Znajdź utwór
-    const music = await Music.findById(id);
+    const music = await Music.findById(id)
 
     if (!music) {
-      fs.unlinkSync(req.file.path);
+      fs.unlinkSync(req.file.path)
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found.",
+      })
     }
 
-    // Sprawdź czy użytkownik jest właścicielem
-    if (music.uploadedBy.toString() !== req.user._id.toString()) {
-      fs.unlinkSync(req.file.path);
+    if (music.uploadedBy.toString() !== req.user.userId.toString()) {
+      fs.unlinkSync(req.file.path)
       return res.status(403).json({
         success: false,
-        message: 'Brak uprawnień do modyfikacji tego utworu'
-      });
+        message: "You do not have permission to modify this track.",
+      })
     }
 
-    // Usuń starą okładkę jeśli istnieje
     if (music.coverImage) {
-      const oldCoverPath = path.join(__dirname, '..', music.coverImage);
+      const oldCoverPath = path.join(__dirname, "..", music.coverImage)
       if (fs.existsSync(oldCoverPath)) {
-        fs.unlinkSync(oldCoverPath);
+        fs.unlinkSync(oldCoverPath)
       }
     }
-    const filename = path.basename(req.file.path);
-    // Zaktualizuj okładkę
-    music.coverImage = `${process.env.BASE_URL}/uploads/images/${filename}`,
-    await music.save();
+    const fileName = path.basename(req.file.path)
+
+    music.coverImage = `${process.env.BASE_URL}/uploads/images/${fileName}`
+      await music.save()
 
     res.status(200).json({
       success: true,
-      message: 'Okładka została przesłana pomyślnie',
+      message: "✅ The cover has been uploaded successfully",
       data: {
-        coverImage: music.coverImage
-      }
-    });
+        coverImage: music.coverImage,
+      },
+    })
   } catch (error) {
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
+    if (req.file) fs.unlinkSync(req.file.path)
     console.log("Error upload image ", error)
+    return res.status(500).json({
+      success: false,
+      message: "Server error while uploading",
+    })
   }
-};
+}
 
-// Aktualizacja metadanych utworu
-const updateMusic = async (req, res, next) => {
+export const updateMusic = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { title, artist, album, genre, tags, isPublic } = req.body;
+    const { id } = req.params
+    const { title, artist, album, genre, tags, isPublic } = req.body
 
-    // Znajdź utwór
-    const music = await Music.findById(id);
+    const music = await Music.findById(id)
 
     if (!music) {
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found.",
+      })
     }
 
-    // Sprawdź uprawnienia
-    if (music.uploadedBy.toString() !== req.user._id.toString()) {
+    if (music.uploadedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Brak uprawnień do modyfikacji tego utworu'
-      });
+        message: "You do not have permission to modify this track.",
+      })
     }
 
-    // Aktualizuj pola
-    if (title) music.title = title;
-    if (artist) music.artist = artist;
-    if (album) music.album = album;
-    if (genre) music.genre = genre;
-    if (typeof isPublic === 'boolean') music.isPublic = isPublic;
-    
+    if (title) music.title = title
+    if (artist) music.artist = artist
+    if (album) music.album = album
+    if (genre) music.genre = genre
+    if (typeof isPublic === "boolean") music.isPublic = isPublic
+
     if (tags) {
-      music.tags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      music.tags = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag)
     }
 
-    await music.save();
-    await music.populate('uploadedBy', 'username');
+    await music.save()
+    await music.populate("uploadedBy", "username")
 
     res.status(200).json({
       success: true,
-      message: 'Utwór został zaktualizowany',
-      data: music
-    });
+      message: "The song has been updated",
+      data: music,
+    })
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Usunięcie utworu
-const deleteMusic = async (req, res, next) => {
+export const deleteMusic = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const music = await Music.findById(id);
+    const music = await Music.findById(id)
 
     if (!music) {
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found.",
+      })
     }
 
-    // Sprawdź uprawnienia
-    if (music.uploadedBy.toString() !== req.user._id.toString()) {
+    if (music.uploadedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         success: false,
-        message: 'Brak uprawnień do usunięcia tego utworu'
-      });
+        message: "You do not have permission to delete this song",
+      })
     }
 
-    // Usuń plik z dysku
     if (music.filePath && fs.existsSync(music.filePath)) {
-      fs.unlinkSync(music.filePath);
+      fs.unlinkSync(music.filePath)
     }
 
-    // Usuń okładkę jeśli istnieje
     if (music.coverImage && fs.existsSync(music.coverImage)) {
-      fs.unlinkSync(music.coverImage);
+      fs.unlinkSync(music.coverImage)
     }
 
-    // Usuń z bazy danych
-    await Music.findByIdAndDelete(id);
+    await Music.findByIdAndDelete(id)
 
     res.status(200).json({
       success: true,
-      message: 'Utwór został usunięty'
-    });
+      message: "The song has been removed",
+    })
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Polubienie utworu
-const likeMusic = async (req, res, next) => {
+export const likeMusic = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const music = await Music.findById(id);
+    const music = await Music.findById(id)
 
     if (!music) {
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found.",
+      })
     }
 
-    // Sprawdź czy użytkownik już polubił
-    const alreadyLiked = music.likes.includes(req.user._id);
+    const alreadyLiked = music.likes.includes(req.user.userId)
 
     if (alreadyLiked) {
       return res.status(400).json({
         success: false,
-        message: 'Już polubiłeś ten utwór'
-      });
+        message: "You already liked this song",
+      })
     }
 
-    await music.like(req.user._id);
+    await music.like(req.user.userId)
 
     res.status(200).json({
       success: true,
-      message: 'Utwór został polubiony',
-      data: {
-        likeCount: music.likeCount
-      }
-    });
+      message: "The song has been liked",
+      likeCount: music.likeCount,
+    })
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Cofnięcie polubienia
-const unlikeMusic = async (req, res, next) => {
+export const unlikeMusic = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const music = await Music.findById(id);
+    const music = await Music.findById(id)
 
     if (!music) {
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found",
+      })
     }
 
-    await music.unlike(req.user._id);
+    await music.unlike(req.user.userId)
 
     res.status(200).json({
       success: true,
-      message: 'Polubienie zostało cofnięte',
-      data: {
-        likeCount: music.likeCount
-      }
-    });
+      message: "The like was revoked",
+
+        likeCount: music.likeCount,
+
+    })
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Odtworzenie utworu (zwiększenie licznika)
-const playMusic = async (req, res, next) => {
+// Play song (increase counter)
+export const playMusic = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params
 
-    const music = await Music.findById(id);
+    const music = await Music.findById(id)
 
     if (!music) {
       return res.status(404).json({
         success: false,
-        message: 'Utwór nie znaleziony'
-      });
+        message: "Song not found.",
+      })
     }
 
-    // Zwiększ licznik odtworzeń
-    await music.incrementPlayCount();
+    await music.incrementPlayCount()
 
-    // Dodaj do ostatnio odtwarzanych użytkownika
-    await User.findByIdAndUpdate(
-      req.user._id,
-      { $addToSet: { 'preferences.recentlyPlayed': id } }
-    );
+    // Add to user's recently played list
+    await User.findByIdAndUpdate(req.user.userId, {
+      $addToSet: { "preferences.recentlyPlayed": id },
+    })
 
     res.status(200).json({
       success: true,
-      message: 'Utwór odtworzony',
-      data: {
-        playCount: music.playCount
-      }
-    });
+      message: "The song was played",
+      playCount: music.playCount,
+    })
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Pobieranie moich utworów
-const getMyMusic = async (req, res, next) => {
+// Get my songs
+export const getMyMusic = async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query;
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-    const skip = (pageNum - 1) * limitNum;
+    const { page = 1, limit = 20 } = req.query
+    const pageNum = parseInt(page)
+    const limitNum = parseInt(limit)
+    const skip = (pageNum - 1) * limitNum
 
-    const music = await Music.find({ uploadedBy: req.user._id })
+    const music = await Music.find({ uploadedBy: req.user.userId })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNum);
+      .limit(limitNum)
 
-    const total = await Music.countDocuments({ uploadedBy: req.user._id });
+    const total = await Music.countDocuments({ uploadedBy: req.user.userId })
 
     res.status(200).json({
       success: true,
@@ -417,23 +430,13 @@ const getMyMusic = async (req, res, next) => {
         currentPage: pageNum,
         totalPages: Math.ceil(total / limitNum),
         totalItems: total,
-        itemsPerPage: limitNum
-      }
-    });
+        itemsPerPage: limitNum,
+      },
+    })
   } catch (error) {
-    next(error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
-
-module.exports = {
-  getAllMusic,
-  getMusicById,
-  uploadMusic,
-  uploadCoverImage,
-  updateMusic,
-  deleteMusic,
-  likeMusic,
-  unlikeMusic,
-  playMusic,
-  getMyMusic
-};
+}

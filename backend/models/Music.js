@@ -1,35 +1,35 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const musicSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'Tytuł utworu jest wymagany'],
+    required: [true, 'Song title is required'],
     trim: true,
-    maxlength: [100, 'Tytuł nie może przekraczać 100 znaków']
+    maxlength: [100, 'The title cannot exceed 100 characters.']
   },
   artist: {
     type: String,
-    required: [true, 'Artysta jest wymagany'],
+    required: [true, 'Artist is required'],
     trim: true,
-    maxlength: [100, 'Nazwa artysty nie może przekraczać 100 znaków']
+    maxlength: [100, 'Artist name cannot exceed 100 characters']
   },
   album: {
     type: String,
     trim: true,
-    maxlength: [100, 'Nazwa albumu nie może przekraczać 100 znaków']
+    maxlength: [100, 'Album name cannot exceed 100 characters']
   },
   genre: {
     type: String,
     trim: true,
-    maxlength: [50, 'Gatunek nie może przekraczać 50 znaków']
+    maxlength: [50, 'Genre cannot exceed 50 characters']
   },
   duration: {
     type: Number, // w sekundach
-    min: [1, 'Czas trwania musi być większy niż 0']
+    min: [1, 'Duration must be greater than 0']
   },
   filePath: {
     type: String,
-    required: [true, 'Ścieżka do pliku jest wymagana']
+    required: [true, 'File path is required']
   },
   fileSize: {
     type: Number,
@@ -74,19 +74,18 @@ const musicSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indeksy dla wyszukiwania
+// Indexes for search
 musicSchema.index({ title: 'text', artist: 'text', album: 'text' });
 musicSchema.index({ genre: 1 });
 musicSchema.index({ uploadedBy: 1 });
 musicSchema.index({ isPublic: 1 });
 
-// Metoda do zwiększania licznika odtworzeń
+// Method to increase play count
 musicSchema.methods.incrementPlayCount = function() {
   this.playCount += 1;
   return this.save();
 };
 
-// Metoda do polubienia utworu
 musicSchema.methods.like = function(userId) {
   if (!this.likes.includes(userId)) {
     this.likes.push(userId);
@@ -95,25 +94,24 @@ musicSchema.methods.like = function(userId) {
   return Promise.resolve(this);
 };
 
-// Metoda do cofnięcia polubienia
 musicSchema.methods.unlike = function(userId) {
   this.likes = this.likes.filter(id => !id.equals(userId));
   return this.save();
 };
 
-// Wirtualne pole dla formatowanego czasu trwania
+// Virtual field for formatted duration
 musicSchema.virtual('formattedDuration').get(function() {
   const minutes = Math.floor(this.duration / 60);
   const seconds = this.duration % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 });
 
-// Wirtualne pole dla liczby polubień
+// Virtual field for the number of likes
 musicSchema.virtual('likeCount').get(function() {
   return this.likes?.length;
 });
 
-// Konfiguracja serializacji
+// Serialization configuration
 musicSchema.set('toJSON', {
   virtuals: true,
   transform: function(doc, ret) {
@@ -121,4 +119,4 @@ musicSchema.set('toJSON', {
   }
 });
 
-module.exports = mongoose.model('Music', musicSchema);
+export default mongoose.model('Music', musicSchema);

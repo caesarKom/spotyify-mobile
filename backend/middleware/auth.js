@@ -1,60 +1,55 @@
-const jwt = require("jsonwebtoken")
-const User = require("../models/User")
+import jwt from "jsonwebtoken"
+import User from "../models/User.js"
 
-// Middleware do weryfikacji JWT
-const protect = async (req, res, next) => {
+// JWT verification middleware
+export const protect = async (req, res, next) => {
   const authHeader = req.headers.authorization
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       success: false,
-      message: "Brak tokena autoryzacji",
+      message: "No authorization token",
     })
   }
 
   const token = authHeader.split(" ")[1]
-
   try {
-    // Weryfikacja tokena
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-    // Znajdź użytkownika i sprawdź czy nadal istnieje
-    const user = await User.findById(decoded.id)
-
+    const user = await User.findById(decoded.userId)
+    
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Użytkownik nie istnieje",
+        message: "User does not exist",
       })
     }
-
-    // Sprawdź czy użytkownik jest zweryfikowany
     if (!user.isVerified) {
       return res.status(401).json({
         success: false,
-        message: "Konto nie zostało zweryfikowane",
+        message: "The account has not been verified",
       })
     }
 
-    req.user = user
+    req.user = {userId: decoded.userId, name: decoded.username}
     next()
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Nieprawidłowy token",
+      message: "Invalid token",
     })
   }
 }
 
-// Middleware do weryfikacji OTP (opcjonalne - dla dodatkowej ochrony)
-const otpRequired = async (req, res, next) => {
+// OTP verification middleware (optional - for additional protection)
+export const otpRequired = async (req, res, next) => {
   try {
     const otpToken = req.headers["x-otp-token"]
 
     if (!otpToken) {
       return res.status(401).json({
         success: false,
-        message: "Wymagane potwierdzenie OTP",
+        message: "OTP confirmation required",
       })
     }
 
@@ -63,12 +58,11 @@ const otpRequired = async (req, res, next) => {
 
     next()
   } catch (error) {
-    console.error("Błąd weryfikacji OTP:", error)
+    console.error("OTP verification error:", error)
     res.status(500).json({
       success: false,
-      message: "Błąd podczas weryfikacji OTP",
+      message: "Error while verifying OTP",
     })
   }
 }
 
-module.exports = { protect, otpRequired }

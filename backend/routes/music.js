@@ -1,6 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from "express";
+
+import {
   getAllMusic,
   getMusicById,
   uploadMusic,
@@ -11,9 +11,11 @@ const {
   unlikeMusic,
   playMusic,
   getMyMusic
-} = require('../controllers/musicController');
-const { protect } = require('../middleware/auth');
-const { uploadMusic: musicUpload, uploadImage: imageUpload } = require('../middleware/upload');
+} from '../controllers/musicController.js'
+import {protect} from '../middleware/auth.js'
+import { uploadMusic as musicUpload, uploadImage as imageUpload } from '../middleware/upload.js';
+
+const router = express.Router();
 
 // Public routes
 router.get('/', getAllMusic);
@@ -29,4 +31,4 @@ router.delete('/:id/unlike', protect, unlikeMusic);
 router.post('/:id/play', protect, playMusic);
 router.get('/my/music', protect, getMyMusic);
 
-module.exports = router;
+export default router;

@@ -1,20 +1,22 @@
-const express = require('express');
-const connectDB = require('./config/database');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-require('dotenv').config({ 
+import express from "express"
+import connectDB from './config/database.js'
+import cors from "cors"
+import helmet from "helmet"
+import rateLimit from 'express-rate-limit';
+import path from "path"
+import dotenv from "dotenv"
+import authRoutes from "./routes/authRouter.js"
+import musicRoutes from "./routes/music.js"
+import userRoutes from "./routes/user.js"
+import errorHandler from "./middleware/errorHandler.js"
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ 
   path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development' 
 });
-
-// Import routes
-const authRoutes = require('./routes/auth');
-const musicRoutes = require('./routes/music');
-const userRoutes = require('./routes/user');
-
-// Import middleware
-const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
@@ -68,7 +70,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on ${process.env.BASE_URL}`);
-  console.log(`Tryb: ${process.env.NODE_ENV}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`\nServer running on ${process.env.BASE_URL}`);
+  console.log(`Mode: ${process.env.NODE_ENV}`);
 });

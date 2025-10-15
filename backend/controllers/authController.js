@@ -1,348 +1,359 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const emailService = require('../utils/emailService');
-const OTPGenerator = require('../utils/otpGenerator');
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthenticatedError,
+} from "../errors/index.js"
+import { StatusCodes } from "http-status-codes"
+import jwt from "jsonwebtoken"
+import User from "../models/User.js"
+import EmailService from "../utils/emailService.js"
+import OTPGenerator from "../utils/otpGenerator.js"
 
-// Generowanie JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
-  });
-};
-
-// Walidacja email
-const validateEmail = (email) => {
-  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-  return emailRegex.test(email);
-};
-
-// Walidacja hasła
-const validatePassword = (password) => {
-  return password && password.length >= 6;
-};
-
-// Walidacja nazwy użytkownika
-const validateUsername = (username) => {
-  const usernameRegex = /^[a-zA-Z0-9_]+$/;
-  return username && username.length >= 3 && username.length <= 30 && usernameRegex.test(username);
-};
-
-// Rejestracja nowego użytkownika
-const register = async (req, res) => {
+const generateRefreshTokens = async (
+  token,
+  refresh_secret,
+  refresh_expiry,
+  access_secret,
+  access_expiry
+) => {
   try {
-    const { username, email, password } = req.body;
+    const payload = jwt.verify(token, refresh_secret)
+    const user = await User.findById(payload.userId)
+    if (!user) {
+      throw new NotFoundError("User not found")
+    }
+    const access_token = jwt.sign({ userId: payload.userId }, access_secret, {
+      expiresIn: access_expiry,
+    })
+    const newRefreshToken = jwt.sign(
+      { userId: payload.userId },
+      refresh_secret,
+      { expiresIn: refresh_expiry }
+    )
 
-    // Walidacja danych wejściowych
+    return { access_token, newRefreshToken }
+  } catch (error) {
+    console.error(error)
+    throw new UnauthenticatedError("Invalid Token")
+  }
+}
+
+export const validateEmail = (email) => {
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/
+  return emailRegex.test(email)
+}
+
+export const validatePassword = (password) => {
+  return password && password.length >= 6
+}
+
+export const validateUsername = (username) => {
+  const usernameRegex = /^[a-zA-Z0-9_]+$/
+  return (
+    username &&
+    username.length >= 3 &&
+    username.length <= 30 &&
+    usernameRegex.test(username)
+  )
+}
+
+export const register = async (req, res) => {
+  try {
+    const { username, email, password } = req.body
+
     if (!username || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Wszystkie pola są wymagane'
-      });
+        message: "All fields are required",
+      })
     }
-
-    // Walidacja email
     if (!validateEmail(email)) {
       return res.status(400).json({
         success: false,
-        message: 'Proszę podać poprawny adres email'
-      });
+        message: "Please provide a valid email address",
+      })
     }
-
-    // Walidacja nazwy użytkownika
     if (!validateUsername(username)) {
       return res.status(400).json({
         success: false,
-        message: 'Nazwa użytkownika musi mieć 3-30 znaków i zawierać tylko litery, cyfry i podkreślenia'
-      });
+        message:
+          "Username must be 3-30 characters long and contain only letters, numbers, and underscores.",
+      })
     }
-
-    // Walidacja hasła
     if (!validatePassword(password)) {
       return res.status(400).json({
         success: false,
-        message: 'Hasło musi mieć minimum 6 znaków'
-      });
+        message: "Password must be at least 6 characters long",
+      })
     }
-
-    // Sprawdź czy użytkownik już istnieje
     const existingUser = await User.findOne({
-      $or: [{ email }, { username }]
-    });
+      $or: [{ email }, { username }],
+    })
 
     if (existingUser) {
       if (existingUser.email === email) {
         return res.status(400).json({
           success: false,
-          message: 'Użytkownik z tym adresem email już istnieje'
-        });
+          message: "A user with this email address already exists",
+        })
       }
       if (existingUser.username === username) {
         return res.status(400).json({
           success: false,
-          message: 'Nazwa użytkownika jest już zajęta'
-        });
+          message: "The username is already taken",
+        })
       }
     }
 
-    // Stwórz nowego użytkownika
     const user = await User.create({
       username,
       email,
-      password
-    });
+      password,
+    })
 
-    // Generuj OTP
-    const otpCode = OTPGenerator.generate();
-    const otpExpiry = OTPGenerator.getExpiryTime(10); // 10 minut
+    const otpCode = OTPGenerator.generate()
+    const otpExpiry = OTPGenerator.getExpiryTime(30) // 30 minutes
 
-    // Zapisz OTP w użytkowniku
-    user.otp.code = otpCode;
-    user.otp.expiresAt = otpExpiry;
-    await user.save();
+    user.otp.code = otpCode
+    user.otp.expiresAt = otpExpiry
+    await user.save()
 
-    // Wyślij email z OTP
-    await emailService.sendOTP(email, otpCode, username);
-
-    // Generuj token dla zalogowanego użytkownika (ale niezweryfikowanego)
-    const token = generateToken(user._id);
+    await EmailService.sendOTP(email, otpCode, username)
 
     res.status(201).json({
       success: true,
-      message: 'Konto utworzone pomyślnie. Sprawdź email aby zweryfikować konto.',
-      token,
+      message:
+        "Account created successfully. Check your email to verify your account.",
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
-        isVerified: user.isVerified
-      }
-    });
+        isVerified: user.isVerified,
+      },
+    })
   } catch (error) {
     console.log("Error register user", error)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Logowanie użytkownika
-const login = async (req, res) => {
+export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body
 
-    // Walidacja danych wejściowych
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email i hasło są wymagane'
-      });
+        message: "Email and password are required",
+      })
     }
 
-    // Znajdź użytkownika po emailu
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select("+password")
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Nieprawidłowy email lub hasło'
-      });
+        message: "Incorrect email or password",
+      })
     }
 
-    // Sprawdź hasło
-    const isPasswordMatch = await user.comparePassword(password);
+    const isPasswordMatch = await user.comparePassword(password)
 
     if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Nieprawidłowy email lub hasło'
-      });
+        message: "Incorrect email or password",
+      })
     }
 
-    // Sprawdź czy konto jest zweryfikowane
     if (!user.isVerified) {
       return res.status(401).json({
         success: false,
-        message: 'Konto nie zostało zweryfikowane. Sprawdź email i użyj kodu OTP.',
-        needsVerification: true
-      });
+        message:
+          "Your account has not been verified. Please check your email and use the OTP code.",
+        needsVerification: true,
+      })
     }
 
-    // Generuj token
-    const token = generateToken(user._id);
+    const access_token = user.createAccessToken()
+    const refresh_token = user.createRefreshToken()
 
     res.status(200).json({
       success: true,
-      message: 'Zalogowano pomyślnie',
-      token,
+      message: "You have logged in successfully",
+      tokens: { access_token, refresh_token },
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
-        //profile: user.profile
-      }
-    });
+        profile: user.profile,
+      },
+    })
   } catch (error) {
     console.log("Error to login", error)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Weryfikacja OTP
-const verifyOTP = async (req, res) => {
+export const verifyOTP = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp } = req.body
 
-    // Walidacja danych wejściowych
     if (!email || !otp) {
       return res.status(400).json({
         success: false,
-        message: 'Email i kod OTP są wymagane'
-      });
+        message: "Email and OTP code are required",
+      })
     }
 
-    // Znajdź użytkownika
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
-      });
+        message: "User not found",
+      })
     }
 
-    // Sprawdź czy OTP jest ważny
     if (!user.isOTPValid()) {
       return res.status(400).json({
         success: false,
-        message: 'Kod OTP jest nieprawidłowy lub wygasł'
-      });
+        message: "The OTP code is invalid or expired",
+      })
     }
 
-    // Sprawdź czy OTP się zgadza
     if (user.otp.code !== otp) {
       return res.status(400).json({
         success: false,
-        message: 'Nieprawidłowy kod OTP'
-      });
+        message: "Invalid OTP code",
+      })
     }
 
-    // Zaktualizuj użytkownika
-    user.isVerified = true;
-    user.clearOTP();
-    await user.save();
+    user.isVerified = true
+    user.clearOTP()
+    await user.save()
 
-    // Wyślij email powitalny
-    await emailService.sendWelcomeEmail(user.email, user.username);
+    await EmailService.sendWelcomeEmail(user.email, user.username)
 
-    // Generuj token dla zweryfikowanego użytkownika
-    const token = generateToken(user._id);
+    const token = generateToken(user._id)
 
     res.status(200).json({
       success: true,
-      message: 'Konto zweryfikowane pomyślnie',
+      message: "Account verified successfully",
       token,
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
-        profile: user.profile
-      }
-    });
+        profile: user.profile,
+      },
+    })
   } catch (error) {
     console.log("Error verify otp", error)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Ponowne wysłanie OTP
-const resendOTP = async (req, res) => {
+export const resendOTP = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email } = req.body
 
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Email jest wymagany'
-      });
+        message: "Email is required",
+      })
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
-      });
+        message: "User not found",
+      })
     }
 
-    // Sprawdź czy użytkownik jest już zweryfikowany
     if (user.isVerified) {
       return res.status(400).json({
         success: false,
-        message: 'Konto zostało już zweryfikowane'
-      });
+        message: "The account has already been verified",
+      })
     }
 
-    // Generuj nowy OTP
-    const otpCode = OTPGenerator.generate();
-    const otpExpiry = OTPGenerator.getExpiryTime(10);
+    const otpCode = OTPGenerator.generate()
+    const otpExpiry = OTPGenerator.getExpiryTime(10)
 
-    // Zaktualizuj OTP w użytkowniku
-    user.otp.code = otpCode;
-    user.otp.expiresAt = otpExpiry;
-    await user.save();
+    user.otp.code = otpCode
+    user.otp.expiresAt = otpExpiry
+    await user.save()
 
-    // Wyślij email z nowym OTP
-    await emailService.sendOTP(email, otpCode, user.username);
+    await EmailService.sendOTP(email, otpCode, user.username)
 
     res.status(200).json({
       success: true,
-      message: 'Nowy kod OTP został wysłany na Twój email'
-    });
+      message: "A new OTP code has been sent to your email",
+    })
   } catch (error) {
     console.log("Error resend otp", error)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
+}
 
-// Odświeżanie tokena
-const refreshToken = async (req, res) => {
-  console.log("Start refresh token api")
+export const refreshToken = async (req, res) => {
+  const { refresh_token } = req.body
+  if (!refresh_token) {
+    throw new BadRequestError("Invalid body")
+  }
   try {
-    const user = req.user;
-   
-    const token = generateToken(user._id);
-
-    res.status(200).json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        isVerified: user.isVerified,
-        //profile: user.profile
-      }
-    });
+    let accessToken, newRefreshToken
+    ;({ access_token: accessToken, newRefreshToken } =
+      await generateRefreshTokens(
+        refresh_token,
+        process.env.REFRESH_TOKEN_SECRET,
+        process.env.REFRESH_TOKEN_EXPIRY,
+        process.env.JWT_SECRET,
+        process.env.ACCESS_TOKEN_EXPIRY
+      ))
+    res
+      .status(StatusCodes.OK)
+      .json({
+        success: true,
+        access_token: accessToken,
+        refresh_token: newRefreshToken,
+      })
   } catch (error) {
     console.log("Error refresh token", error)
+    throw new UnauthenticatedError("Invalid Token")
   }
-};
+}
 
-// Wylogowanie (opcjonalne - w React Native zazwyczaj po prostu usuwamy token z pamięci)
-const logout = async (req, res) => {
+export const logout = async (req, res) => {
   try {
-    // W przyszłości można dodać czarną listę tokenów
-    res.status(200).json({
+    // A token blacklist may be added in the future
+    res.status(StatusCodes.OK).json({
       success: true,
-      message: 'Wylogowano pomyślnie'
-    });
+      message: "Logged out successfully",
+    })
   } catch (error) {
     console.log("Error log out", error)
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    })
   }
-};
-
-module.exports = {
-  register,
-  login,
-  verifyOTP,
-  resendOTP,
-  refreshToken,
-  logout
-};
+}

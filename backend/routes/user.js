@@ -1,6 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const {
+import express from "express";
+
+import {
   getProfile,
   updateProfile,
   uploadAvatar,
@@ -9,9 +9,11 @@ const {
   getRecentlyPlayed,
   changePassword,
   deleteAccount
-} = require('../controllers/userController');
-const { protect } = require('../middleware/auth');
-const { uploadImage } = require('../middleware/upload');
+} from '../controllers/userController.js';
+import { protect } from '../middleware/auth.js';
+import { uploadImage } from '../middleware/upload.js';
+
+const router = express.Router();
 
 // All routes are protected
 router.get('/profile', protect, getProfile);
@@ -23,4 +25,4 @@ router.get('/recently-played', protect, getRecentlyPlayed);
 router.put('/change-password', protect, changePassword);
 router.delete('/account', protect, deleteAccount);
 
-module.exports = router;
+export default router;

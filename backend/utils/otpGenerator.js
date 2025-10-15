@@ -1,4 +1,4 @@
-class OTPGenerator {
+export default class OTPGenerator {
   // Generowanie 6-cyfrowego kodu OTP
   static generate(length = 6) {
     const digits = '0123456789';
@@ -12,7 +12,7 @@ class OTPGenerator {
   }
 
   // Obliczanie czasu wygaśnięcia OTP (domyślnie 10 minut)
-  static getExpiryTime(minutes = 10) {
+  static getExpiryTime(minutes = 30) {
     return new Date(Date.now() + minutes * 60 * 1000);
   }
 
@@ -46,5 +46,3 @@ class OTPGenerator {
     return result;
   }
 }
-
-module.exports = OTPGenerator;

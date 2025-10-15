@@ -1,24 +1,26 @@
-const User = require('../models/User');
-const Music = require('../models/Music');
-const path = require('path');
-const fs = require('fs');
+import User from '../models/User.js';
+import Music from '../models/Music.js';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// Pobieranie profilu użytkownika
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const getProfile = async (req, res) => {
 
   try {
-    const user = await User.findById(req.user._id)
+    const user = await User.findById(req.user.userId)
       .populate('preferences.recentlyPlayed', 'title artist coverImage')
      //.populate('preferences.playlists', 'name description coverImage');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found.'
       });
     }
 
-    // Policz statystyki
     const musicCount = await Music.countDocuments({ uploadedBy: user._id });
     const likedCount = await Music.countDocuments({ likes: user._id });
 
@@ -37,26 +39,25 @@ const getProfile = async (req, res) => {
   }
 };
 
-// Aktualizacja profilu użytkownika
-const updateProfile = async (req, res, next) => {
+const updateProfile = async (req, res) => {
   try {
     const { firstName, lastName, bio, favoriteGenres } = req.body;
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found.'
       });
     }
 
-    // Aktualizuj pola profilu
+    // Update profile fields
     if (firstName !== undefined) user.profile.firstName = firstName;
     if (lastName !== undefined) user.profile.lastName = lastName;
     if (bio !== undefined) user.profile.bio = bio;
     
-    // Aktualizuj ulubione gatunki
+    // Update your favorite genres
     if (favoriteGenres) {
       if (Array.isArray(favoriteGenres)) {
         user.preferences.favoriteGenres = favoriteGenres;
@@ -69,35 +70,37 @@ const updateProfile = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Profil zaktualizowany pomyślnie',
+      message: 'Profile updated successfully',
       data: user
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-// Upload awatara użytkownika
-const uploadAvatar = async (req, res, next) => {
+const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'Plik obrazu jest wymagany'
+        message: 'Image file is required'
       });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.userId);
 
     if (!user) {
       fs.unlinkSync(req.file.path);
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found.'
       });
     }
 
-    // Usuń stary avatar jeśli istnieje
+    // Delete the old avatar if it exists
     if (user.profile.avatar) {
       const oldAvatarPath = path.join(__dirname, '..', user.profile.avatar);
       if (fs.existsSync(oldAvatarPath)) {
@@ -105,13 +108,12 @@ const uploadAvatar = async (req, res, next) => {
       }
     }
 
-    // Zaktualizuj avatar
     user.profile.avatar = req.file.path;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'Avatar został przesłany pomyślnie',
+      message: 'Avatar uploaded successfully',
       data: {
         avatar: user.profile.avatar
       }
@@ -120,63 +122,65 @@ const uploadAvatar = async (req, res, next) => {
     if (req.file) {
       fs.unlinkSync(req.file.path);
     }
-    next(error);
+     res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-// Usunięcie awatara
-const deleteAvatar = async (req, res, next) => {
+const deleteAvatar = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.userId);
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found'
       });
     }
 
     if (!user.profile.avatar) {
       return res.status(400).json({
         success: false,
-        message: 'Nie masz ustawionego awatara'
+        message: 'You dont have an avatar set'
       });
     }
 
-    // Usuń plik awatara
     const avatarPath = path.join(__dirname, '..', user.profile.avatar);
     if (fs.existsSync(avatarPath)) {
       fs.unlinkSync(avatarPath);
     }
 
-    // Wyczyść pole avatar
     user.profile.avatar = null;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'Avatar został usunięty'
+      message: 'Avatar has been removed'
     });
   } catch (error) {
-    next(error);
+     res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-// Pobieranie ulubionych utworów użytkownika
-const getLikedMusic = async (req, res, next) => {
+const getLikedMusic = async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    const music = await Music.find({ likes: req.user._id })
+    const music = await Music.find({ likes: req.user.userId })
       .populate('uploadedBy', 'username')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
 
-    const total = await Music.countDocuments({ likes: req.user._id });
+    const total = await Music.countDocuments({ likes: req.user.userId });
 
     res.status(200).json({
       success: true,
@@ -189,14 +193,16 @@ const getLikedMusic = async (req, res, next) => {
       }
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-// Pobieranie ostatnio odtwarzanych utworów
-const getRecentlyPlayed = async (req, res, next) => {
+const getRecentlyPlayed = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id)
+    const user = await User.findById(req.user.userId)
       .populate({
         path: 'preferences.recentlyPlayed',
         populate: {
@@ -208,11 +214,11 @@ const getRecentlyPlayed = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found'
       });
     }
 
-    // Ogranicz do 20 ostatnich
+    // Limit to last 20
     const recentlyPlayed = user.preferences.recentlyPlayed.slice(0, 20);
 
     res.status(200).json({
@@ -220,108 +226,105 @@ const getRecentlyPlayed = async (req, res, next) => {
       data: recentlyPlayed
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-// Zmiana hasła użytkownika
-const changePassword = async (req, res, next) => {
+const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Aktualne hasło i nowe hasło są wymagane'
+        message: 'Current password and new password are required'
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message: 'Nowe hasło musi mieć minimum 6 znaków'
+        message: 'The new password must be at least 6 characters long.'
       });
     }
 
-    const user = await User.findById(req.user._id).select('+password');
+    const user = await User.findById(req.user.userId).select('+password');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found'
       });
     }
 
-    // Sprawdź aktualne hasło
     const isPasswordMatch = await user.comparePassword(currentPassword);
 
     if (!isPasswordMatch) {
       return res.status(400).json({
         success: false,
-        message: 'Aktualne hasło jest nieprawidłowe'
+        message: 'The current password is incorrect'
       });
     }
 
-    // Zaktualizuj hasło
     user.password = newPassword;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'Hasło zostało zmienione pomyślnie'
+      message: 'The password has been changed successfully'
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-// Usunięcie konta użytkownika
-const deleteAccount = async (req, res, next) => {
+const deleteAccount = async (req, res) => {
   try {
     const { password } = req.body;
 
     if (!password) {
       return res.status(400).json({
         success: false,
-        message: 'Hasło jest wymagane do usunięcia konta'
+        message: 'A password is required to delete your account.'
       });
     }
 
-    const user = await User.findById(req.user._id).select('+password');
+    const user = await User.findById(req.user.userId).select('+password');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Użytkownik nie znaleziony'
+        message: 'User not found'
       });
     }
 
-    // Sprawdź hasło
     const isPasswordMatch = await user.comparePassword(password);
 
     if (!isPasswordMatch) {
       return res.status(400).json({
         success: false,
-        message: 'Nieprawidłowe hasło'
+        message: 'Incorrect password'
       });
     }
 
-    // Usuń wszystkie pliki użytkownika
     const userMusic = await Music.find({ uploadedBy: user._id });
     
     for (const music of userMusic) {
-      // Usuń plik audio
       if (music.filePath && fs.existsSync(music.filePath)) {
         fs.unlinkSync(music.filePath);
       }
       
-      // Usuń okładkę
       if (music.coverImage && fs.existsSync(music.coverImage)) {
         fs.unlinkSync(music.coverImage);
       }
     }
 
-    // Usuń awatara jeśli istnieje
     if (user.profile.avatar) {
       const avatarPath = path.join(__dirname, '..', user.profile.avatar);
       if (fs.existsSync(avatarPath)) {
@@ -329,22 +332,23 @@ const deleteAccount = async (req, res, next) => {
       }
     }
 
-    // Usuń wszystkie utwory użytkownika
     await Music.deleteMany({ uploadedBy: user._id });
 
-    // Usuń użytkownika
     await User.findByIdAndDelete(user._id);
 
     res.status(200).json({
       success: true,
-      message: 'Konto zostało usunięte pomyślnie'
+      message: 'The account was deleted successfully'
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({
+        success: false,
+        message: 'Internal server error.'
+      });
   }
 };
 
-module.exports = {
+export {
   getProfile,
   updateProfile,
   uploadAvatar,

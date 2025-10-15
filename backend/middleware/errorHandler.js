@@ -1,44 +1,29 @@
+import { StatusCodes } from 'http-status-codes';
+
 const errorHandler = (err, req, res, next) => {
-  console.error('Błąd:', err);
+  const defaultError = {
+    statusCodes: err.statusCodes || StatusCodes.INTERNAL_SERVER_ERROR,
+    msg: err.message || 'Something went wrong, try again later',
+  };
 
-  let error = { ...err };
-  error.message = err.message;
-
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Nieprawidłowy format ID';
-    error = { message, statusCode: 400 };
-  }
-
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    const message = `${field} już istnieje w bazie danych`;
-    error = { message, statusCode: 400 };
-  }
-
-  // Mongoose validation error
   if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = { message, statusCode: 400 };
+    defaultError.statusCodes = StatusCodes.BAD_REQUEST;
+    defaultError.msg = Object.values(err.errors)
+      .map((item) => item.message)
+      .join(', ');
   }
 
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Nieprawidłowy token';
-    error = { message, statusCode: 401 };
+  if (err.code && err.code === 11000) {
+    defaultError.statusCodes = StatusCodes.BAD_REQUEST;
+    defaultError.msg = `${Object.keys(err.keyValue)} field has to be unique`;
   }
 
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Token wygasł';
-    error = { message, statusCode: 401 };
+  if (err.name === 'CastError') {
+    defaultError.statusCodes = StatusCodes.NOT_FOUND;
+    defaultError.msg = `No item found with id: ${err.value}`;
   }
 
-  res.status(error.statusCode || 500).json({
-    success: false,
-    message: error.message || 'Błąd serwera',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-  });
+  res.status(defaultError.statusCodes).json({ msg: defaultError.msg });
 };
 
-module.exports = errorHandler;
+export default errorHandler;

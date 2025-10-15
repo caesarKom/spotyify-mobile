@@ -1,8 +1,11 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-// Upewnij się, że katalogi istnieją
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const uploadDir = path.join(__dirname, '../uploads');
 const musicDir = path.join(uploadDir, 'music');
 const imagesDir = path.join(uploadDir, 'images');
@@ -13,7 +16,6 @@ const imagesDir = path.join(uploadDir, 'images');
   }
 });
 
-// Konfiguracja storage dla muzyki
 const musicStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, musicDir);
@@ -24,7 +26,6 @@ const musicStorage = multer.diskStorage({
   }
 });
 
-// Konfiguracja storage dla obrazków
 const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, imagesDir);
@@ -35,7 +36,6 @@ const imageStorage = multer.diskStorage({
   }
 });
 
-// Filtr plików muzycznych
 const musicFilter = (req, file, cb) => {
   const allowedTypes = /mp3|wav|mpeg|flac|m4a|aac|ogg/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -44,11 +44,10 @@ const musicFilter = (req, file, cb) => {
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error('Dozwolone są tylko pliki audio (MP3, MPEG, WAV, FLAC, M4A, AAC, OGG)'));
+    cb(new Error('Only audio files are allowed (MP3, MPEG, WAV, FLAC, M4A, AAC, OGG)'));
   }
 };
 
-// Filtr obrazków
 const imageFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -57,29 +56,27 @@ const imageFilter = (req, file, cb) => {
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error('Dozwolone są tylko pliki obrazów (JPEG, JPG, PNG, GIF, WEBP)'));
+    cb(new Error('Only image files are allowed (JPEG, JPG, PNG, GIF, WEBP)'));
   }
 };
 
-// Middleware do uploadu muzyki
+
 const uploadMusic = multer({
   storage: musicStorage,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 50000000 // 50MB domyślnie
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 50000000 // 50MB by default
   },
   fileFilter: musicFilter
 });
 
-// Middleware do uploadu obrazków
 const uploadImage = multer({
   storage: imageStorage,
   limits: {
-    fileSize: 10000000 // 10MB dla obrazków
+    fileSize: 10000000 // 10MB by default
   },
   fileFilter: imageFilter
 });
 
-// Middleware do uploadu wielu plików
 const uploadMultiple = multer({
   storage: musicStorage,
   limits: {
@@ -87,7 +84,7 @@ const uploadMultiple = multer({
   }
 });
 
-module.exports = {
+export {
   uploadMusic,
   uploadImage,
   uploadMultiple
