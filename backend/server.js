@@ -25,7 +25,7 @@ app.use(helmet());
 
 // CORS configuration for React Native
 app.use(cors({
-  origin: "*",
+  origin: process.env.CORS_ORIGIN,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-otp-token','token']
@@ -37,7 +37,7 @@ const limiter = rateLimit({
   max: 100, // limit ip 100 req on windowMs
   message: 'To many request, please try again after few minutes'
 });
-app.use('/api/', limiter);
+app.use('/v1/', limiter);
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
@@ -50,13 +50,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 connectDB()
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/music', musicRoutes);
-app.use('/api/user', userRoutes);
+app.use('/v1/auth', authRoutes);
+app.use('/v1/music', musicRoutes);
+app.use('/v1/user', userRoutes);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ message: 'API działa poprawnie', timestamp: new Date().toLocaleString() });
+app.get('/v1/health', (req, res) => {
+  res.json({ message: 'API is running corected', timestamp: new Date().toLocaleString() });
 });
 
 
