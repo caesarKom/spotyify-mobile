@@ -14,11 +14,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ 
-  path: process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development' 
-});
+dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // and 'loopback' if nginx is localy
 
 // Security middleware
 app.use(helmet());
