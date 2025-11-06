@@ -17,7 +17,6 @@ const __dirname = path.dirname(__filename);
 dotenv.config();
 
 const app = express();
-app.set('trust proxy', 1); // and 'loopback' if nginx is localy
 
 // Security middleware
 app.use(helmet());
@@ -34,7 +33,8 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min.
   max: 100, // limit ip 100 req on windowMs
-  message: 'To many request, please try again after few minutes'
+  message: 'To many request, please try again after few minutes',
+  validate: { trustProxy: true }
 });
 app.use('/v1/', limiter);
 
