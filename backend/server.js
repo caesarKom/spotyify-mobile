@@ -35,20 +35,7 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min.
   max: 100, // limit ip 100 req on windowMs
   message: 'To many request, please try again after few minutes',
-  validate: { trustProxy: true },
-  keyGenerator: (req, res) => {
-			let ip = req.ip
-			try {
-				const forwards = parseForwarded(req.headers.forwarded)
-				ip = forwards[forwards.length - NUMBER_OF_PROXIES_TO_TRUST].for
-			} catch (ex) {
-				console.error(
-					`Error parsing Forwarded header ${req.headers.forwarded} from ${req.ip}:`,
-					ex,
-				)
-			}
-			return ipKeyGenerator(ip)
-		},
+  keyGenerator: (req, res) => req.ip
 });
 app.use('/v1/', limiter);
 
