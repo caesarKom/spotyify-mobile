@@ -2,7 +2,7 @@ import express from "express"
 import connectDB from './config/database.js'
 import cors from "cors"
 import helmet from "helmet"
-import rateLimit from 'express-rate-limit';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
 import path from "path"
 import dotenv from "dotenv"
 import authRoutes from "./routes/authRouter.js"
@@ -35,7 +35,20 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min.
   max: 100, // limit ip 100 req on windowMs
   message: 'To many request, please try again after few minutes',
-  validate: { trustProxy: true }
+  validate: { trustProxy: true },
+  keyGenerator: (req, res) => {
+			let ip = req.ip
+			try {
+				const forwards = parseForwarded(req.headers.forwarded)
+				ip = forwards[forwards.length - NUMBER_OF_PROXIES_TO_TRUST].for
+			} catch (ex) {
+				console.error(
+					`Error parsing Forwarded header ${req.headers.forwarded} from ${req.ip}:`,
+					ex,
+				)
+			}
+			return ipKeyGenerator(ip)
+		},
 });
 app.use('/v1/', limiter);
 
