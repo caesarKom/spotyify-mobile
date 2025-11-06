@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer"
 
-class EmailService {
+class EmailServices {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -155,4 +155,4 @@ class EmailService {
   }
 }
 
-export default new EmailService()
+export default EmailServices

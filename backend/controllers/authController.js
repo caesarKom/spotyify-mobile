@@ -6,8 +6,11 @@ import {
 import { StatusCodes } from "http-status-codes"
 import jwt from "jsonwebtoken"
 import User from "../models/User.js"
-import EmailService from "../utils/emailService.js"
-import OTPGenerator from "../utils/otpGenerator.js"
+import EmailServices from "../utils/emailService.js"
+import OTPGenerators from "../utils/otpGenerator.js"
+
+const OTPGenerator = new OTPGenerators()
+const EmailService = new EmailServices()
 
 const generateRefreshTokens = async (
   token,

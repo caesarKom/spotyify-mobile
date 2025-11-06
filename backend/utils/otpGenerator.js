@@ -1,4 +1,4 @@
-class OTPGenerator {
+class OTPGenerators {
   static generate(length = 6) {
     const digits = '0123456789';
     let otp = '';
@@ -41,4 +41,4 @@ class OTPGenerator {
   }
 }
 
-export default new OTPGenerator()
+export default OTPGenerators;
