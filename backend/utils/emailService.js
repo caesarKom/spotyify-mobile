@@ -1,8 +1,6 @@
 import nodemailer from "nodemailer"
 
-class EmailServices {
-  constructor() {
-    this.transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT),
       secure: false,
@@ -14,10 +12,9 @@ class EmailServices {
         rejectUnauthorized: false,
       },
     })
-  }
 
   // Send OTP
-  async sendOTP(email, otp, username = "") {
+  export async function sendOTP(email, otp, username = "") {
     try {
       const mailOptions = {
         from: process.env.EMAIL_FROM,
@@ -51,7 +48,7 @@ class EmailServices {
         `,
       }
 
-      const result = await this.transporter.sendMail(mailOptions)
+      const result = await transporter.sendMail(mailOptions)
       console.log("Email wysłany pomyślnie:", result.messageId)
       return { success: true, messageId: result.messageId }
     } catch (error) {
@@ -61,7 +58,7 @@ class EmailServices {
   }
 
   // Metoda do wysyłania powitalnego emaila po weryfikacji
-  async sendWelcomeEmail(email, username) {
+export async function sendWelcomeEmail(email, username) {
     try {
       const mailOptions = {
         from: process.env.EMAIL_FROM,
@@ -95,7 +92,7 @@ class EmailServices {
         `,
       }
 
-      await this.transporter.sendMail(mailOptions)
+      await transporter.sendMail(mailOptions)
       console.log("Email powitalny wysłany")
     } catch (error) {
       console.error("Błąd podczas wysyłania emaila powitalnego:", error)
@@ -104,7 +101,7 @@ class EmailServices {
   }
 
   // Metoda do wysyłania emaila resetującego hasło (na przyszłość)
-  async sendPasswordResetEmail(email, resetToken) {
+export async function sendPasswordResetEmail(email, resetToken) {
     try {
       const mailOptions = {
         from: process.env.EMAIL_FROM,
@@ -134,7 +131,7 @@ class EmailServices {
         `,
       }
 
-      await this.transporter.sendMail(mailOptions)
+      await transporter.sendMail(mailOptions)
       console.log("Email resetujący hasło wysłany")
     } catch (error) {
       console.error("Błąd podczas wysyłania emaila resetującego:", error)
@@ -143,9 +140,9 @@ class EmailServices {
   }
 
   // Test połączenia z serwerem SMTP
-  async testConnection() {
+export async function testConnection() {
     try {
-      await this.transporter.verify()
+      await transporter.verify()
       console.log("Połączenie z serwerem email działa poprawnie")
       return true
     } catch (error) {
@@ -153,6 +150,3 @@ class EmailServices {
       return false
     }
   }
-}
-
-export default EmailServices

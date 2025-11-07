@@ -2,7 +2,7 @@ import express from "express"
 import connectDB from './config/database.js'
 import cors from "cors"
 import helmet from "helmet"
-import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 import path from "path"
 import dotenv from "dotenv"
 import authRoutes from "./routes/authRouter.js"

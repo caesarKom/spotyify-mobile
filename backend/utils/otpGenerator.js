@@ -1,5 +1,4 @@
-class OTPGenerators {
-  static generate(length = 6) {
+  export function generateOTP(length = 6) {
     const digits = '0123456789';
     let otp = '';
     
@@ -10,11 +9,11 @@ class OTPGenerators {
     return otp;
   }
 
-  static getExpiryTime(minutes = 30) {
+export function getExpiryTime(minutes = 30) {
     return new Date(Date.now() + minutes * 60 * 1000);
   }
 
-  static isValid(otp, storedOTP, expiryTime) {
+export function isValidOTP(otp, storedOTP, expiryTime) {
     if (!otp || !storedOTP || !expiryTime) {
       return false;
     }
@@ -29,7 +28,7 @@ class OTPGenerators {
     return now <= expiry;
   }
 
-  static generateRandomString(length = 32) {
+export function generateRandomString(length = 32) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     
@@ -39,6 +38,5 @@ class OTPGenerators {
     
     return result;
   }
-}
 
-export default OTPGenerators;
+

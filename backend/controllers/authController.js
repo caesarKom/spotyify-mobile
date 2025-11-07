@@ -6,11 +6,8 @@ import {
 import { StatusCodes } from "http-status-codes"
 import jwt from "jsonwebtoken"
 import User from "../models/User.js"
-import EmailServices from "../utils/emailService.js"
-import OTPGenerators from "../utils/otpGenerator.js"
-
-const OTPGenerator = new OTPGenerators()
-const EmailService = new EmailServices()
+import { sendOTP, sendWelcomeEmail } from "../utils/emailService.js"
+import { generateOTP, getExpiryTime } from "../utils/otpGenerator.js"
 
 const generateRefreshTokens = async (
   token,
@@ -114,14 +111,14 @@ export const register = async (req, res) => {
       password,
     })
 
-    const otpCode = OTPGenerator.generate()
-    const otpExpiry = OTPGenerator.getExpiryTime(30) // 30 minutes
+    const otpCode = generateOTP()
+    const otpExpiry = getExpiryTime(30) // 30 minutes
 
     user.otp.code = otpCode
     user.otp.expiresAt = otpExpiry
     await user.save()
 
-    await EmailService.sendOTP(email, otpCode, username)
+    await sendOTP(email, otpCode, username)
 
     res.status(201).json({
       success: true,
@@ -243,14 +240,15 @@ export const verifyOTP = async (req, res) => {
     user.clearOTP()
     await user.save()
 
-    await EmailService.sendWelcomeEmail(user.email, user.username)
+    await sendWelcomeEmail(user.email, user.username)
 
-    const token = generateToken(user._id)
+    const access_token = user.createAccessToken()
+    const refresh_token = user.createRefreshToken() 
 
     res.status(200).json({
       success: true,
       message: "Account verified successfully",
-      token,
+      tokens: {access_token, refresh_token},
       user: {
         id: user._id,
         username: user.username,
@@ -295,14 +293,14 @@ export const resendOTP = async (req, res) => {
       })
     }
 
-    const otpCode = OTPGenerator.generate()
-    const otpExpiry = OTPGenerator.getExpiryTime(10)
+    const otpCode = generateOTP()
+    const otpExpiry = getExpiryTime(10)
 
     user.otp.code = otpCode
     user.otp.expiresAt = otpExpiry
     await user.save()
 
-    await EmailService.sendOTP(email, otpCode, user.username)
+    await sendOTP(email, otpCode, user.username)
 
     res.status(200).json({
       success: true,
