@@ -1,5 +1,4 @@
 import {
-  BadRequestError,
   NotFoundError,
   UnauthenticatedError,
 } from "../errors/index.js"
@@ -318,7 +317,7 @@ export const resendOTP = async (req, res) => {
 export const refreshToken = async (req, res) => {
   const { refresh_token } = req.body
   if (!refresh_token) {
-    throw new BadRequestError("Invalid body")
+    return null
   }
   try {
     let accessToken, newRefreshToken
