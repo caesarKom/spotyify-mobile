@@ -19,7 +19,8 @@ const generateRefreshTokens = async (
     const payload = jwt.verify(token, refresh_secret)
     const user = await User.findById(payload.userId)
     if (!user) {
-      throw new NotFoundError("User not found")
+      console.log("⚠️ Użytkownik nie istnieje w bazie, ale token jest poprawny", payload)
+      throw new Error("USER_NOT_FOUND_IN_DB")
     }
     const access_token = jwt.sign({ userId: payload.userId }, access_secret, {
       expiresIn: access_expiry,
@@ -32,8 +33,12 @@ const generateRefreshTokens = async (
 
     return { access_token, newRefreshToken }
   } catch (error) {
-    console.error(error)
-    throw new UnauthenticatedError("Invalid Token")
+    console.error("❌ Error generateRefreshTokens:", error.message)
+    
+    if (error.message === "USER_NOT_FOUND_IN_DB") {
+      throw new UnauthenticatedError("SESSION_EXPIRED")
+    }
+    throw new UnauthenticatedError("INVALID_TOKEN")
   }
 }
 
@@ -338,7 +343,25 @@ export const refreshToken = async (req, res) => {
       })
   } catch (error) {
     console.log("Error refresh token", error)
-    throw new UnauthenticatedError("Invalid Token")
+
+    if (error.message === "SESSION_EXPIRED" || error.StatusCodes === 404) {
+      return res.status(401).json({
+        error: "SESSION_EXPIRED",
+        message: "Session expired. Please login again."
+      })
+    }
+
+    if (error.message === "INVALID_TOKEN") {
+      return res.status(401).json({
+        error: "INVALID_TOKEN", 
+        message: "Invalid token. Please login again."
+      })
+    }
+
+    res.status(error.StatusCodes || 500).json({
+      error: "REFRESH_TOKEN_ERROR",
+      message: error.message || "Token refresh failed"
+    })
   }
 }
 
