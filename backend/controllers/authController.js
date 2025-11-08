@@ -293,7 +293,7 @@ export const resendOTP = async (req, res) => {
     }
 
     const otpCode = generateOTP()
-    const otpExpiry = getExpiryTime(10)
+    const otpExpiry = getExpiryTime(30)
 
     user.otp.code = otpCode
     user.otp.expiresAt = otpExpiry
