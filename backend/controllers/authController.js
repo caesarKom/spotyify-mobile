@@ -1,6 +1,7 @@
 import {
   NotFoundError,
   UnauthenticatedError,
+  BadRequestError
 } from "../errors/index.js"
 import { StatusCodes } from "http-status-codes"
 import jwt from "jsonwebtoken"
@@ -19,8 +20,7 @@ const generateRefreshTokens = async (
     const payload = jwt.verify(token, refresh_secret)
     const user = await User.findById(payload.userId)
     if (!user) {
-      console.log("⚠️ Użytkownik nie istnieje w bazie, ale token jest poprawny", payload)
-      throw new Error("USER_NOT_FOUND_IN_DB")
+      throw new NotFoundError('User not found');
     }
     const access_token = jwt.sign({ userId: payload.userId }, access_secret, {
       expiresIn: access_expiry,
@@ -33,12 +33,8 @@ const generateRefreshTokens = async (
 
     return { access_token, newRefreshToken }
   } catch (error) {
-    console.error("❌ Error generateRefreshTokens:", error.message)
-    
-    if (error.message === "USER_NOT_FOUND_IN_DB") {
-      throw new UnauthenticatedError("SESSION_EXPIRED")
-    }
-    throw new UnauthenticatedError("INVALID_TOKEN")
+    console.error(error);
+    throw new UnauthenticatedError('Invalid Token');
   }
 }
 
@@ -322,7 +318,7 @@ export const resendOTP = async (req, res) => {
 export const refreshToken = async (req, res) => {
   const { refresh_token } = req.body
   if (!refresh_token) {
-    return null
+    throw new BadRequestError('Invalid body');
   }
   try {
     let accessToken, newRefreshToken
@@ -342,26 +338,8 @@ export const refreshToken = async (req, res) => {
         refresh_token: newRefreshToken,
       })
   } catch (error) {
-    console.log("Error refresh token", error)
-
-    if (error.message === "SESSION_EXPIRED" || error.StatusCodes === 404) {
-      return res.status(401).json({
-        error: "SESSION_EXPIRED",
-        message: "Session expired. Please login again."
-      })
-    }
-
-    if (error.message === "INVALID_TOKEN") {
-      return res.status(401).json({
-        error: "INVALID_TOKEN", 
-        message: "Invalid token. Please login again."
-      })
-    }
-
-    res.status(error.StatusCodes || 500).json({
-      error: "REFRESH_TOKEN_ERROR",
-      message: error.message || "Token refresh failed"
-    })
+    console.error(error);
+    throw new UnauthenticatedError('Invalid Token');
   }
 }
 
