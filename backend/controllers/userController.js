@@ -106,9 +106,9 @@ const uploadAvatar = async (req, res) => {
       if (fs.existsSync(oldAvatarPath)) {
         fs.unlinkSync(oldAvatarPath);
       }
-    }
-
-    user.profile.avatar = req.file.path;
+    } 
+    const fileName = path.basename(req.file.path)
+    user.profile.avatar = `${process.env.BASE_URL}/uploads/images/${fileName}`
     await user.save();
 
     res.status(200).json({
