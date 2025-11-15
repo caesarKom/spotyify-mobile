@@ -1,18 +1,21 @@
 import { ImageIcon, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { apiRequest } from "../../config/api";
+import { useAuthImage } from "../../hooks/useAuthImage";
 
 
 const EditUserModal = ({ user, onClose, onSave }) => {
+  const avatarUrl = useAuthImage(user.profile.avatar)
   const [formData, setFormData] = useState({
+    role: user?.role || '',
     firstName: user.profile?.firstName || '',
     lastName: user.profile?.lastName || '',
     bio: user.profile?.bio || '',
     favoriteGenres: user.preferences?.favoriteGenres?.join(', ') || ''
   });
   const [avatar, setAvatar] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user.profile?.avatar || null);
-
+  const [previewUrl, setPreviewUrl] = useState(avatarUrl || null);
+console.log(user)
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -24,7 +27,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
       reader.readAsDataURL(file);
     }
   };
-console.log(user)
+
   const handleSave = async () => {
       // First update the music data
       await onSave(formData);
@@ -122,6 +125,15 @@ console.log(user)
               value={formData.favoriteGenres} 
               onChange={(e) => setFormData({...formData, favoriteGenres: e.target.value})} 
               placeholder="rock, pop, jazz"
+              className="w-full border rounded-lg px-3 py-2" 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">User Role</label>
+            <input 
+              value={formData.role} 
+              onChange={(e) => setFormData({...formData, role: e.target.value})} 
+              placeholder="user | admin"
               className="w-full border rounded-lg px-3 py-2" 
             />
           </div>

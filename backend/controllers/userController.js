@@ -41,7 +41,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, bio, favoriteGenres } = req.body;
+    const { firstName, lastName, bio, favoriteGenres, role } = req.body;
 
     const user = await User.findById(req.user.userId);
 
@@ -51,7 +51,7 @@ const updateProfile = async (req, res) => {
         message: 'User not found.'
       });
     }
-
+    if (role !== undefined) user.role = role
     // Update profile fields
     if (firstName !== undefined) user.profile.firstName = firstName;
     if (lastName !== undefined) user.profile.lastName = lastName;
