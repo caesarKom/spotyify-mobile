@@ -4,11 +4,30 @@ import { apiRequest } from "../config/api";
 import EditUserModal from "../components/modals/edit-user";
 import { UsersCard } from "../components/usersCard";
 
+export interface UserProps {
+  _id: string;
+  username: string;
+  email: string;
+  role?: "user"|"admin"
+  isVerified?: boolean
+  profile: {
+    firstName?: string
+    lastName?:string
+    avatar?: string
+    bio?: string
+  }
+  preferences?: {
+    favoriteGenres?: string[]
+    recentlyPlayed?: string[]
+    playlists?: string[]
+  }
+}
+
 const UsersManagerPage = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<UserProps[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingUser, setEditingUser] = useState<UserProps|null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -22,7 +41,7 @@ const UsersManagerPage = () => {
       if (data.success) {
         setUsers([data.data.user]);
       }
-    } catch (err) {
+    } catch (err:any) {
       console.error('Error fetching users:', err);
       alert('Error loading users: ' + err.message);
     } finally {
@@ -30,7 +49,7 @@ const UsersManagerPage = () => {
     }
   };
 
-  const updateUser = async (userId, updates) => {
+  const updateUser = async (userId:string, updates:UserProps) => {
     try {
       const res = await apiRequest('/user/profile', {
         method: 'PUT',
@@ -42,7 +61,7 @@ const UsersManagerPage = () => {
         setEditingUser(null);
         fetchUsers();
       }
-    } catch (err) {
+    } catch (err:any) {
       alert('Error updating user: ' + err.message);
     }
   };
@@ -77,7 +96,7 @@ const UsersManagerPage = () => {
         <EditUserModal
           user={editingUser}
           onClose={() => setEditingUser(null)}
-          onSave={(updates) => updateUser(editingUser._id, updates)}
+          onSave={(updates:UserProps) => updateUser(editingUser._id, updates)}
         />
       )}
     </div>

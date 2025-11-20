@@ -1,9 +1,15 @@
 import { Edit, Music, Trash2 } from "lucide-react";
 import { useAuthImage } from "../hooks/useAuthImage";
 import { apiRequest } from "../config/api";
+import type { Track } from "../pages/music-page";
 
-export const MusicCard = ({ track, setEditingMusic }) => {
-    const imageSrc = useAuthImage(track.coverImage);
+interface Props {
+    track: Track
+    setEditingMusic: (track:Track) => void
+}
+
+export const MusicCard = ({ track, setEditingMusic }: Props) => {
+    const imageSrc = useAuthImage(track.coverImage!);
 
      const deleteMusic = async (id:string) => {
         if (!confirm('Are you sure you want to delete this song?')) return;
@@ -21,7 +27,7 @@ export const MusicCard = ({ track, setEditingMusic }) => {
 
     return (
         <div key={track._id} className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
-                <div className="aspect-square bg-gradient-to-br from-purple-400 to-indigo-500 relative">
+                <div className="aspect-square bg-linear-to-br from-purple-400 to-indigo-500 relative">
                   {imageSrc ? (
                     <img src={imageSrc} className="w-full h-full object-cover" alt={track.title} />
                   ) : (

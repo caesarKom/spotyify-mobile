@@ -129,6 +129,7 @@ export const register = async (req, res) => {
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
+        role: user.role
       },
     })
   } catch (error) {
@@ -190,6 +191,7 @@ export const loginUser = async (req, res) => {
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
+        role: user.role,
         profile: user.profile,
       },
     })
@@ -254,6 +256,7 @@ export const verifyOTP = async (req, res) => {
         username: user.username,
         email: user.email,
         isVerified: user.isVerified,
+        role: user.role,
         profile: user.profile,
       },
     })

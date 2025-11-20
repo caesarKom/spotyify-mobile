@@ -5,11 +5,25 @@ import EditMusicModal from "../components/modals/edit-music";
 import UploadMusicModal from "../components/modals/upload-music";
 import { MusicCard } from "../components/musicCard";
 
+export type Track = {
+  _id: string
+  music: File|Blob
+  title: string
+  artist:string
+  album?: string
+  genre?: string
+  tags?: string[]
+  isPublic?: boolean
+  coverImage?:string
+  playCount?: number
+  likeCount?: number
+}
+
 const MusicManagerPage = () => {
-  const [music, setMusic] = useState([]);
+  const [music, setMusic] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingMusic, setEditingMusic] = useState(null);
+  const [editingMusic, setEditingMusic] = useState<Track|null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
 
@@ -34,7 +48,7 @@ const MusicManagerPage = () => {
     }
   };
 
-  const updateMusic = async (id, updates) => {
+  const updateMusic = async (id:string, updates:Track) => {
     try {
       const res = await apiRequest(`/music/${id}`, {
         method: 'PUT',
@@ -46,12 +60,12 @@ const MusicManagerPage = () => {
         setEditingMusic(null);
         fetchMusic();
       }
-    } catch (err) {
+    } catch (err:any) {
       alert('Error updating song: ' + err.message);
     }
   };
 
-  const uploadMusic = async (formData) => {
+  const uploadMusic = async (formData:Track) => {
     try {
       const res = await apiRequest('/music/upload', {
         method: 'POST',
@@ -65,7 +79,7 @@ const MusicManagerPage = () => {
       } else {
         alert(data.message || 'Upload failed');
       }
-    } catch (err) {
+    } catch (err:any) {
       alert('Error uploading: ' + err.message);
     }
   };
@@ -136,7 +150,7 @@ const MusicManagerPage = () => {
         <EditMusicModal
           music={editingMusic}
           onClose={() => setEditingMusic(null)}
-          onSave={(updates) => updateMusic(editingMusic._id, updates)}
+          onSave={(updates:Track) => updateMusic(editingMusic._id, updates)}
         />
       )}
 
