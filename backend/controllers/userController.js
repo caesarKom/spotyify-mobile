@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import Music from '../models/Music.js';
+import Playlist from '../models/Playlist.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -12,7 +13,7 @@ const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId)
       .populate('preferences.recentlyPlayed', 'title artist coverImage')
-     //.populate('preferences.playlists', 'name description coverImage');
+      .populate('preferences.playlists', 'name description coverImage');
 
     if (!user) {
       return res.status(404).json({
@@ -23,6 +24,7 @@ const getProfile = async (req, res) => {
 
     const musicCount = await Music.countDocuments({ uploadedBy: user._id });
     const likedCount = await Music.countDocuments({ likes: user._id });
+    const playlistCount  = await Playlist.countDocuments({ owner: user._id });
 
     res.status(200).json({
       success: true,
@@ -30,7 +32,8 @@ const getProfile = async (req, res) => {
         user,
         stats: {
           musicCount,
-          likedCount
+          likedCount,
+          playlistCount
         }
       }
     });

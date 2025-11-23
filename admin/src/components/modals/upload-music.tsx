@@ -3,7 +3,7 @@ import { useState } from "react"
 
 interface UploadDataProps {
   _id: string
-  music: File | Blob
+  music: File
   title: string
   artist: string
   album?: string
@@ -13,7 +13,7 @@ interface UploadDataProps {
 
 interface Props {
   onClose: () => void
-  onUpload: (data: UploadDataProps) => void
+  onUpload: (data: UploadDataProps, coverImage:File) => void
 }
 
 const UploadMusicModal = ({ onClose, onUpload }: Props) => {
@@ -51,7 +51,7 @@ const UploadMusicModal = ({ onClose, onUpload }: Props) => {
     }
   }
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!musicFile || !formData.title || !formData.artist) {
       alert("Please fill in required fields (file, title, artist)")
       return
@@ -60,10 +60,11 @@ const UploadMusicModal = ({ onClose, onUpload }: Props) => {
     data.append("music", musicFile)
     data.append("title", formData.title)
     data.append("artist", formData.artist)
+    
     if (formData.album) data.append("album", formData.album)
     if (formData.genre) data.append("genre", formData.genre)
     if (formData.tags) data.append("tags", formData.tags)
-    onUpload(data as unknown as UploadDataProps)
+    onUpload(data as unknown as UploadDataProps, coverImage as File)
   }
 
   return (

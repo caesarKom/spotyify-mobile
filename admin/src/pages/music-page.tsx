@@ -4,10 +4,11 @@ import { apiRequest } from "../config/api";
 import EditMusicModal from "../components/modals/edit-music";
 import UploadMusicModal from "../components/modals/upload-music";
 import { MusicCard } from "../components/musicCard";
+import toast from "react-hot-toast";
 
 export type Track = {
   _id: string
-  music: File|Blob
+  music: File
   title: string
   artist:string
   album?: string
@@ -42,7 +43,7 @@ const MusicManagerPage = () => {
       }
     } catch (err:any) {
       console.error('Error fetching music:', err);
-      alert('Error loading music: ' + err.message);
+      toast.error('Error loading music: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -56,16 +57,16 @@ const MusicManagerPage = () => {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Song updated successfully');
+        toast.success('Song updated successfully');
         setEditingMusic(null);
         fetchMusic();
       }
     } catch (err:any) {
-      alert('Error updating song: ' + err.message);
+      toast.error('Error updating song: ' + err.message);
     }
   };
 
-  const uploadMusic = async (formData:Track) => {
+  const uploadMusic = async (formData:Track, coverImage:File) => {
     try {
       const res = await apiRequest('/music/upload', {
         method: 'POST',
@@ -73,14 +74,27 @@ const MusicManagerPage = () => {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Song uploaded successfully');
+       if (coverImage) {
+          const coverFormData = new FormData();
+          coverFormData.append('image', coverImage);
+          
+          try {
+            await apiRequest(`/music/${data.data._id}/cover`, {
+              method: 'POST',
+              body: coverFormData
+            });
+          } catch (err) {
+            console.error('Error uploading cover:', err);
+          }
+        }
+        toast.success('Song uploaded successfully');
         setShowUploadModal(false);
         fetchMusic();
       } else {
-        alert(data.message || 'Upload failed');
+        toast.error(data.message || 'Upload failed');
       }
     } catch (err:any) {
-      alert('Error uploading: ' + err.message);
+      toast.error('Error uploading: ' + err.message);
     }
   };
 
@@ -157,7 +171,7 @@ const MusicManagerPage = () => {
       {showUploadModal && (
         <UploadMusicModal
           onClose={() => setShowUploadModal(false)}
-          onUpload={uploadMusic}
+          onUpload={(FormData, coverImage) => uploadMusic(FormData, coverImage)}
         />
       )}
     </div>

@@ -15,7 +15,7 @@ const [currentView, setCurrentView] = useState('dashboard');
   if (!isAuthenticated) {
     return <LoginPage />;
   }
-console.log(user)
+
   if (user && user.role !== 'admin') {
     return (
       <div className="min-h-screen bg-linear-to-br from-red-900 via-red-800 to-red-900 flex items-center justify-center p-4">

@@ -2,6 +2,8 @@ import { ImageIcon, Upload, X } from "lucide-react"
 import { useState } from "react"
 import { apiRequest } from "../../config/api"
 import type { Track } from "../../pages/music-page"
+import { useAuthImage } from "../../hooks/useAuthImage"
+import toast from "react-hot-toast"
 
 interface Props {
   music: Track
@@ -10,6 +12,8 @@ interface Props {
 }
 
 const EditMusicModal = ({ music, onClose, onSave }: Props) => {
+  const existImgage = useAuthImage(music.coverImage as string)
+
   const [formData, setFormData] = useState({
     title: music.title || "",
     artist: music.artist || "",
@@ -19,9 +23,7 @@ const EditMusicModal = ({ music, onClose, onSave }: Props) => {
     isPublic: music.isPublic || false,
   })
   const [coverImage, setCoverImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(
-    music.coverImage || null
-  )
+  const [previewUrl, setPreviewUrl] = useState<string | null>(existImgage || null)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -53,10 +55,10 @@ const EditMusicModal = ({ music, onClose, onSave }: Props) => {
         })
         const data = await res.json()
         if (data.success) {
-          alert("Cover image updated successfully")
+          toast.success("Cover image updated successfully")
         }
       } catch (err: any) {
-        alert("Error uploading cover: " + err.message)
+        toast.error("Error uploading cover: " + err.message)
       }
     }
   }

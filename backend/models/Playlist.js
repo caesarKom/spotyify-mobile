@@ -35,11 +35,17 @@ const playlistSchema = new mongoose.Schema({
   tags: [{
     type: String,
     trim: true
-  }]
+  }],
+  genres: [{                      
+type: String,
+trim: true,
+lowercase: true
+}],
 }, {
   timestamps: true
 });
 // Indexs
+playlistSchema.index({ genres: 1 });
 playlistSchema.index({ owner: 1 });
 playlistSchema.index({ isPublic: 1 });
 playlistSchema.index({ name: 'text', description: 'text' });
@@ -58,6 +64,14 @@ playlistSchema.virtual('followerCount').get(function() {
 playlistSchema.virtual('totalDuration').get(function() {
   // This will be calculated dynamically when downloading the playlist
   return 0;
+});
+
+playlistSchema.virtual('trackCount').get(function () {
+return this.tracks?.length || 0;
+});
+
+playlistSchema.virtual('followerCount').get(function () {
+return this.followers?.length || 0;
 });
 
 // Method for adding songs

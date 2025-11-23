@@ -2,6 +2,7 @@ import { Edit, Music, Trash2 } from "lucide-react";
 import { useAuthImage } from "../hooks/useAuthImage";
 import { apiRequest } from "../config/api";
 import type { Track } from "../pages/music-page";
+import toast from "react-hot-toast";
 
 interface Props {
     track: Track
@@ -9,7 +10,7 @@ interface Props {
 }
 
 export const MusicCard = ({ track, setEditingMusic }: Props) => {
-    const imageSrc = useAuthImage(track.coverImage!);
+    const imageSrc = useAuthImage(track.coverImage as string);
 
      const deleteMusic = async (id:string) => {
         if (!confirm('Are you sure you want to delete this song?')) return;
@@ -17,16 +18,16 @@ export const MusicCard = ({ track, setEditingMusic }: Props) => {
           const res = await apiRequest(`/music/${id}`, { method: 'DELETE' });
           const data = await res.json();
           if (data.success) {
-            alert('Song deleted successfully');
+            toast.success('Song deleted successfully');
             window.location.reload()
           }
         } catch (err:any) {
-          alert('Error deleting song: ' + err.message);
+          toast.error('Error deleting song: ' + err.message);
         }
       };
 
     return (
-        <div key={track._id} className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+        <div className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
                 <div className="aspect-square bg-linear-to-br from-purple-400 to-indigo-500 relative">
                   {imageSrc ? (
                     <img src={imageSrc} className="w-full h-full object-cover" alt={track.title} />

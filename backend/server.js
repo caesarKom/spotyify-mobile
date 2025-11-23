@@ -8,6 +8,7 @@ import dotenv from "dotenv"
 import authRoutes from "./routes/authRouter.js"
 import musicRoutes from "./routes/music.js"
 import userRoutes from "./routes/user.js"
+import playlistRoutes from "./routes/playlistRouter.js"
 import errorHandler from "./middleware/errorHandler.js"
 import { fileURLToPath } from 'url';
 import { protect } from "./middleware/auth.js";
@@ -54,6 +55,7 @@ connectDB()
 app.use('/v1/auth', authRoutes);
 app.use('/v1/music', musicRoutes);
 app.use('/v1/user', userRoutes);
+app.use('/v1/playlist', playlistRoutes);
 
 // Health check endpoint
 app.get('/v1/health', (req, res) => {
