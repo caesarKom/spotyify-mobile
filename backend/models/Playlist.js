@@ -50,55 +50,39 @@ playlistSchema.index({ owner: 1 });
 playlistSchema.index({ isPublic: 1 });
 playlistSchema.index({ name: 'text', description: 'text' });
 
-// Virtual field for the number of tracks
-playlistSchema.virtual('trackCount').get(function() {
-  return this.tracks.length;
-});
-
-// Virtual field for follower count
-playlistSchema.virtual('followerCount').get(function() {
-  return this.followers.length;
-});
-
-// Virtual field for total duration
-playlistSchema.virtual('totalDuration').get(function() {
-  // This will be calculated dynamically when downloading the playlist
-  return 0;
-});
-
 playlistSchema.virtual('trackCount').get(function () {
-return this.tracks?.length || 0;
+  return Array.isArray(this.tracks) ? this.tracks.length : 0;
 });
 
 playlistSchema.virtual('followerCount').get(function () {
-return this.followers?.length || 0;
+  return Array.isArray(this.followers) ? this.followers.length : 0;
 });
 
-// Method for adding songs
-playlistSchema.methods.addTrack = function(musicId) {
-  if (!this.tracks.includes(musicId)) {
-    this.tracks.push(musicId);
-    return this.save();
-  }
-  return Promise.resolve(this);
-};
+playlistSchema.virtual('totalDuration').get(function () {
+  return 0; 
+});
 
-playlistSchema.methods.removeTrack = function(musicId) {
-  this.tracks = this.tracks.filter(id => !id.equals(musicId));
+playlistSchema.methods.addTrack = function (musicId) {
+  if (!Array.isArray(this.tracks)) this.tracks = [];
+  if (!this.tracks.includes(musicId)) this.tracks.push(musicId);
   return this.save();
 };
 
-// Method to follow a playlist
-playlistSchema.methods.follow = function(userId) {
-  if (!this.followers.includes(userId)) {
-    this.followers.push(userId);
-    return this.save();
-  }
-  return Promise.resolve(this);
+playlistSchema.methods.removeTrack = function (musicId) {
+  if (!Array.isArray(this.tracks)) return Promise.resolve(this);
+  this.tracks = this.tracks.filter(id => id && id.toString() !== musicId.toString());
+  return this.save();
 };
 
-playlistSchema.methods.unfollow = function(userId) {
-  this.followers = this.followers.filter(id => !id.equals(userId));
+playlistSchema.methods.follow = function (userId) {
+  if (!Array.isArray(this.followers)) this.followers = [];
+  if (!this.followers.includes(userId)) this.followers.push(userId);
+  return this.save();
+};
+
+playlistSchema.methods.unfollow = function (userId) {
+  if (!Array.isArray(this.followers)) return Promise.resolve(this);
+  this.followers = this.followers.filter(id => id && id.toString() !== userId.toString());
   return this.save();
 };
 
