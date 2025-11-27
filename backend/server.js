@@ -35,7 +35,7 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min.
-  max: 100, // limit ip 100 req on windowMs
+  max: 300, // limit ip 100 req on windowMs
   message: 'To many request, please try again after few minutes',
   keyGenerator: (req, res) => req.ip
 });

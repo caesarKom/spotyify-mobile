@@ -8,36 +8,110 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Get all songs (public)
+// export const getAllMusic = async (req, res) => {
+//   try {
+//     const { page = 1, limit = 20, search, genre, artist } = req.query
+//     const pageNum = parseInt(page)
+//     const limitNum = parseInt(limit)
+//     const skip = (pageNum - 1) * limitNum
+
+//     const filters = { isPublic: true }
+
+//     if (search) {
+//       filters.$text = { $search: search }
+//     }
+
+//     if (genre) {
+//       filters.genre = new RegExp(genre, "i")
+//     }
+
+//     if (artist) {
+//       filters.artist = new RegExp(artist, "i")
+//     }
+
+//     // Download songs with pagination
+//     const music = await Music.find(filters)
+//       .populate("uploadedBy", "username")
+//       .sort({ createdAt: -1 })
+//       .skip(skip)
+//       .limit(limitNum)
+
+//     // Calculate the total number of songs
+//     const total = await Music.countDocuments(filters)
+
+//     res.status(200).json({
+//       success: true,
+//       music,
+//       pagination: {
+//         currentPage: pageNum,
+//         totalPages: Math.ceil(total / limitNum),
+//         totalItems: total,
+//         itemsPerPage: limitNum,
+//       },
+//     })
+//   } catch (error) {
+//     console.log("Error get all miusic ", error)
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     })
+//   }
+// }
+
 export const getAllMusic = async (req, res) => {
   try {
-    const { page = 1, limit = 20, search, genre, artist } = req.query
-    const pageNum = parseInt(page)
-    const limitNum = parseInt(limit)
-    const skip = (pageNum - 1) * limitNum
+    const { page = 1, limit = 20, search, genre, artist, fields } = req.query;
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, parseInt(limit));
+    const skip = (pageNum - 1) * limitNum;
 
-    const filters = { isPublic: true }
+    const filters = { isPublic: true };
 
-    if (search) {
-      filters.$text = { $search: search }
+    if (search) filters.$text = { $search: search };
+    if (genre) filters.genre = new RegExp(genre, 'i');
+    if (artist) filters.artist = new RegExp(artist, 'i');
+
+    // ⬇️ agregate: coverImage + filePath + username for one request
+    const pipeline = [
+      { $match: filters },
+      { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limitNum },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'uploadedBy',
+          foreignField: '_id',
+          as: 'uploadedBy',
+          pipeline: [{ $project: { username: 1 } }]
+        }
+      },
+      { $unwind: '$uploadedBy' },
+      // ⬇️ add full URL for image/files
+      {
+        $addFields: {
+          coverImage: {
+            $ifNull: [
+              '$coverImage',
+              `${process.env.BASE_URL}/uploads/images/default.jpg`
+            ]
+          },
+          filePath: {
+            $concat: [`${process.env.BASE_URL}/`, '$filePath']
+          }
+        }
+      }
+    ];
+
+    // opcional: Only cover (faster)
+    if (fields === 'cover') {
+      pipeline.push({
+        $project: { coverImage, _id }
+      });
     }
 
-    if (genre) {
-      filters.genre = new RegExp(genre, "i")
-    }
-
-    if (artist) {
-      filters.artist = new RegExp(artist, "i")
-    }
-
-    // Download songs with pagination
-    const music = await Music.find(filters)
-      .populate("uploadedBy", "username")
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum)
-
-    // Calculate the total number of songs
-    const total = await Music.countDocuments(filters)
+    const music = await Music.aggregate(pipeline);
+    const total = await Music.countDocuments(filters);
 
     res.status(200).json({
       success: true,
@@ -48,15 +122,12 @@ export const getAllMusic = async (req, res) => {
         totalItems: total,
         itemsPerPage: limitNum,
       },
-    })
+    });
   } catch (error) {
-    console.log("Error get all miusic ", error)
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    })
+    console.error('getAllMusic error:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
-}
+};
 
 export const getMusicById = async (req, res) => {
   try {
