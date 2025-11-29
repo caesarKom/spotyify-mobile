@@ -97,7 +97,7 @@ export const getAllMusic = async (req, res) => {
             ]
           },
           filePath: {
-            $concat: [`${process.env.BASE_URL}/`, '$filePath']
+            $concat: ['$filePath']
           }
         }
       }

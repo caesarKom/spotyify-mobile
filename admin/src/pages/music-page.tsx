@@ -1,10 +1,12 @@
 import { Plus, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../config/api";
 import EditMusicModal from "../components/modals/edit-music";
 import UploadMusicModal from "../components/modals/upload-music";
 import { MusicCard } from "../components/musicCard";
 import toast from "react-hot-toast";
+import debounce from 'lodash/debounce';
+import Pagination from "../components/pagination";
 
 export type Track = {
   _id: string
@@ -24,18 +26,40 @@ const MusicManagerPage = () => {
   const [music, setMusic] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchValue, setSearchValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+
   const [editingMusic, setEditingMusic] = useState<Track|null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
 
+  // debounce 300 ms
+const debouncedSearch = useMemo(
+  () =>
+    debounce((text: string) => {
+      setSearchTerm(text);
+      setIsTyping(false); 
+    }, 300),
+  []
+);
+
+const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const text = e.target.value;
+  setSearchValue(text);
+  setIsTyping(true);
+  debouncedSearch(text);
+};
+
   useEffect(() => {
-    fetchMusic();
-  }, [pagination.currentPage]);
+   if (!isTyping) fetchMusic();
+  }, [searchTerm, pagination.currentPage, isTyping]);
 
   const fetchMusic = async () => {
     setLoading(true);
     try {
-      const res = await apiRequest(`/music?page=${pagination.currentPage}&limit=20`);
+      const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
+
+      const res = await apiRequest(`/music?page=${pagination.currentPage}&limit=20${searchParam}`);
       const data = await res.json();
       if (data.success) {
         setMusic(data.music);
@@ -98,10 +122,10 @@ const MusicManagerPage = () => {
     }
   };
 
-  const filteredMusic = music.filter(m =>
-    m.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.artist?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredMusic = music.filter(m =>
+  //   m.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   m.artist?.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   return (
     <div>
@@ -112,8 +136,8 @@ const MusicManagerPage = () => {
             type="text"
             placeholder="Search music..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchValue}
+            onChange={handleSearchChange}
           />
         </div>
         <button
@@ -130,32 +154,18 @@ const MusicManagerPage = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {filteredMusic.map((track) => (
+            {music.map((track) => (
               <MusicCard key={track._id} track={track} setEditingMusic={setEditingMusic} />
             )
              )}
           </div>
 
           {pagination.totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              <button
-                disabled={pagination.currentPage === 1}
-                onClick={() => setPagination({...pagination, currentPage: pagination.currentPage - 1})}
-                className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 hover:bg-gray-50"
-              >
-                Previous
-              </button>
-              <span className="px-4 py-2 bg-white border rounded-lg">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </span>
-              <button
-                disabled={pagination.currentPage === pagination.totalPages}
-                onClick={() => setPagination({...pagination, currentPage: pagination.currentPage + 1})}
-                className="px-4 py-2 bg-white border rounded-lg disabled:opacity-50 hover:bg-gray-50"
-              >
-                Next
-              </button>
-            </div>
+            <Pagination 
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={page => setPagination({ ...pagination, currentPage: page})}
+            />
           )}
         </>
       )}
