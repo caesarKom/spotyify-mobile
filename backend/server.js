@@ -26,7 +26,24 @@ app.use(helmet());
 
 // CORS configuration for React Native
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
+  origin: function(origin, callback) {
+    // Mobile apps not send origin
+    if (!origin) return callback(null, true);
+    
+    // Wildcard for *.iscode.eu
+    if (origin.match(/https?:\/\/([\w-]+\.)?iscode\.eu(:\d+)?$/)) {
+      return callback(null, true);
+    }
+    
+    // Localhost/IP for development
+    if (origin.startsWith('http://localhost') || 
+        origin.startsWith('http://127.0.0.1') ||
+        origin.startsWith('http://173.249.31.149')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-otp-token','token']
