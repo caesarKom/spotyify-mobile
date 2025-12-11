@@ -74,7 +74,7 @@ export const createPlaylist = async (req, res) => {
 
 export const getMyPlaylists = async (req, res) => {
   const playlists = await Playlist.find({ owner: req.user.userId })
-    .populate("tracks", "title artist coverImage duration")
+    .populate("tracks", "title artist coverImage duration filePath")
     .sort({ updatedAt: -1 })
   res.status(StatusCodes.OK).json({ success: true, data: playlists })
 }
