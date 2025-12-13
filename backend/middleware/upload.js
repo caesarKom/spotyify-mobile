@@ -37,14 +37,14 @@ const imageStorage = multer.diskStorage({
 });
 
 const musicFilter = (req, file, cb) => {
-  const allowedTypes = /mp3|wav|mpeg|flac|m4a|aac|ogg/;
+  const allowedTypes = /mp3|mp4|wav|mpeg|flac|m4a|aac|ogg/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = allowedTypes.test(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new Error('Only audio files are allowed (MP3, MPEG, WAV, FLAC, M4A, AAC, OGG)'));
+    cb(new Error('Only audio files are allowed (MP3, MP4, MPEG, WAV, FLAC, M4A, AAC, OGG)'));
   }
 };
 
@@ -72,7 +72,7 @@ const uploadMusic = multer({
 const uploadImage = multer({
   storage: imageStorage,
   limits: {
-    fileSize: 10000000 // 10MB by default
+    fileSize: 50000000 // 50MB by default
   },
   fileFilter: imageFilter
 });
