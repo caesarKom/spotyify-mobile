@@ -7,6 +7,7 @@ import Dashboard from './pages/dashboard';
 import UsersManagerPage from './pages/user-page';
 import MusicManagerPage from './pages/music-page';
 import { useState } from 'react';
+import PlayList from './pages/playlist';
 
 const AdminPanel = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -42,6 +43,7 @@ const [currentView, setCurrentView] = useState('dashboard');
         {currentView === 'dashboard' && <Dashboard />}
         {currentView === 'users' && <UsersManagerPage />}
         {currentView === 'music' && <MusicManagerPage />}
+        {currentView === 'playlist' && <PlayList />}
       </main>
     </div>
   );

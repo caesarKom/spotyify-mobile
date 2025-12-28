@@ -11,7 +11,8 @@ import userRoutes from "./routes/user.js"
 import playlistRoutes from "./routes/playlistRouter.js"
 import errorHandler from "./middleware/errorHandler.js"
 import { fileURLToPath } from 'url';
-import { protect } from "./middleware/auth.js";
+import { mediaTokenStaticAuth } from './middleware/mediaAuth.js';
+import mediaTokenRoutes from './routes/mediaTokenRouter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,7 +64,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Static files
-app.use('/uploads', protect, express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', mediaTokenStaticAuth, express.static(path.join(__dirname, 'uploads')));
 
 // Database connection
 connectDB()
@@ -73,6 +74,7 @@ app.use('/v1/auth', authRoutes);
 app.use('/v1/music', musicRoutes);
 app.use('/v1/user', userRoutes);
 app.use('/v1/playlist', playlistRoutes);
+app.use('/v1/media-token', mediaTokenRoutes);
 
 // Health check endpoint
 app.get('/v1/health', (req, res) => {

@@ -1,4 +1,4 @@
-import { Music, Shield, Users } from "lucide-react";
+import { LucideBookHeadphones, Music, Shield, Users } from "lucide-react";
 
 interface Props {
     currentView: string
@@ -14,7 +14,8 @@ const Navigation = ({currentView, setCurrentView}:Props) => {
         {[
           { id: 'dashboard', label: 'Dashboard', icon: Shield },
           { id: 'users', label: 'Users', icon: Users },
-          { id: 'music', label: 'Music', icon: Music }
+          { id: 'music', label: 'Music', icon: Music },
+          { id: 'playlist', label: 'PlayList', icon: LucideBookHeadphones }
         ].map(({ id, label, icon: Icon }) => (
           <button
             key={id}

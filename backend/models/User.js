@@ -76,6 +76,11 @@ const userSchema = new mongoose.Schema(
         enum: ["male", "female", "other"],
       },
     },
+    mediaToken: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'MediaToken',
+  default: null
+},
     preferences: {
       favoriteGenres: [
         {
@@ -164,5 +169,43 @@ userSchema.methods.createRefreshToken = function () {
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
   )
 }
+
+// Method for create token
+userSchema.methods.createMediaToken = async function() {
+  const MediaToken = mongoose.model('MediaToken');
+  
+  // Deactivate old token if exists
+  if (this.mediaToken) {
+    await MediaToken.findByIdAndUpdate(this.mediaToken, {
+      isActive: false
+    });
+  }
+  
+  // Create new token
+  const newToken = await MediaToken.createForUser(this._id);
+  
+  // Link to user
+  this.mediaToken = newToken._id;
+  await this.save();
+  
+  return newToken;
+};
+
+// for load token
+userSchema.methods.getMediaTokenInfo = async function() {
+  if (!this.mediaToken) return null;
+  
+  const MediaToken = mongoose.model('MediaToken');
+  const token = await MediaToken.findById(this.mediaToken);
+  
+  if (!token) return null;
+  
+  return {
+    token: token.token,
+    info: token.getUsageInfo(),
+    createdAt: token.createdAt,
+    isActive: token.isActive
+  };
+};
 
 export default mongoose.model("User", userSchema)

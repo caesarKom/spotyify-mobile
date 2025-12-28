@@ -118,6 +118,8 @@ export const register = async (req, res) => {
     user.otp.expiresAt = otpExpiry
     await user.save()
 
+    await user.createMediaToken();
+
     await sendOTP(email, otpCode, username)
 
     res.status(201).json({
