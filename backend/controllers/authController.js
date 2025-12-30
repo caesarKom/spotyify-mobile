@@ -184,16 +184,16 @@ export const loginUser = async (req, res) => {
 
     const access_token = user.createAccessToken()
     const refresh_token = user.createRefreshToken()
-    const media_token = user.createMediaToken()
 
     res.status(200).json({
       success: true,
       message: "You have logged in successfully",
-      tokens: { access_token, refresh_token, media_token },
+      tokens: { access_token, refresh_token },
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
+        mediaToken: user.mediaToken,
         isVerified: user.isVerified,
         role: user.role,
         profile: user.profile,

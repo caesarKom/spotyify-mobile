@@ -4,11 +4,12 @@ export const API_URL = "https://apis.iscode.eu/v1"
 
 // API helper with automatic token refresh
 export const apiRequest = async (endpoint: string, options:any = {}) => {
-  const { accessToken, refreshAccessToken, logout } = useAuthStore.getState();
-  
+  const { accessToken, refreshAccessToken, logout, user } = useAuthStore.getState();
+  console.log(user)
   const makeRequest = async (token:string|null) => {
     const headers = {
       'Content-Type': 'application/json',
+      'x-media-token': user?.mediaToken,
       ...options.headers
     };
     

@@ -6,6 +6,7 @@ type User = {
     id?: string;
     username?: string;
     email?: string;
+    mediaToken?: string;
     isVerified?: boolean;
     role?: "user"|"admin"
     profile?: {
