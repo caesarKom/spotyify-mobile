@@ -22,7 +22,7 @@ export const getAllMusic = async (req, res) => {
     if (artist) filters.artist = new RegExp(artist, 'i');
 
     const music = await Music.find(filters)
-      .populate('uploadedBy', 'username')
+      //.populate('uploadedBy', 'username')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
