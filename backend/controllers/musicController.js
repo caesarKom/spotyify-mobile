@@ -275,15 +275,17 @@ export const deleteMusic = async (req, res) => {
     }
 
     if (music.coverImage) {
-      const oldCoverPath = path.join(__dirname, "..", music.coverImage)
-      if (fs.existsSync(oldCoverPath)) {
-        fs.unlinkSync(oldCoverPath)
+      const relativePath = music.coverImage.replace(process.env.BASE_URL, '').replace(/^\//, '')
+      const fullPath = path.join(__dirname, "..", relativePath)
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath)
       }
     }
     if (music.filePath) {
-      const oldFilePath = path.join(__dirname, "..", music.filePath)
-      if (fs.existsSync(oldFilePath)) {
-        fs.unlinkSync(oldFilePath)
+      const relativePath = music.filePath.replace(process.env.BASE_URL, '').replace(/^\//, '')
+      const fullPath = path.join(__dirname, "..", relativePath)
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath)
       }
     }
 
