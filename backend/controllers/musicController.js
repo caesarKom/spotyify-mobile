@@ -265,7 +265,7 @@ export const deleteMusic = async (req, res) => {
       })
     }
 
-    if (music.uploadedBy.toString() !== req.user.userId.toString()) {
+    if (!req.user.role === "admin" && music.uploadedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to delete this song",
