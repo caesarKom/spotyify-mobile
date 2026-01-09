@@ -216,7 +216,7 @@ export const updateMusic = async (req, res) => {
       })
     }
 
-    if (music.uploadedBy.toString() !== req.user.userId.toString()) {
+    if (req.user.role !== "admin" && music.uploadedBy.toString() !== req.user.userId.toString()) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to modify this track.",
@@ -264,20 +264,27 @@ export const deleteMusic = async (req, res) => {
         message: "Song not found.",
       })
     }
+    const isAdmin = req.user.role === "admin"
+    const isOwner = music.uploadedBy.toString() === req.user.userId.toString()
 
-    if (!req.user.role === "admin" && music.uploadedBy.toString() !== req.user.userId.toString()) {
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({
         success: false,
         message: "You do not have permission to delete this song",
       })
     }
 
-    if (music.filePath && fs.existsSync(music.filePath)) {
-      fs.unlinkSync(music.filePath)
+    if (music.coverImage) {
+      const oldCoverPath = path.join(__dirname, "..", music.coverImage)
+      if (fs.existsSync(oldCoverPath)) {
+        fs.unlinkSync(oldCoverPath)
+      }
     }
-
-    if (music.coverImage && fs.existsSync(music.coverImage)) {
-      fs.unlinkSync(music.coverImage)
+    if (music.filePath) {
+      const oldFilePath = path.join(__dirname, "..", music.filePath)
+      if (fs.existsSync(oldFilePath)) {
+        fs.unlinkSync(oldFilePath)
+      }
     }
 
     await Music.findByIdAndDelete(id)
