@@ -109,7 +109,7 @@ const UploadMusicModal = ({ onClose, onUpload }: Props) => {
                   Choose Image
                 </label>
                 <p className="text-xs text-gray-500 mt-2">
-                  JPG, PNG, GIF, WEBP (Max 10MB)
+                  JPG, PNG, GIF, WEBP (Max 50MB)
                 </p>
               </div>
             </div>

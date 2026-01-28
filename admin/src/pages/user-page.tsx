@@ -36,7 +36,7 @@ const UsersManagerPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await apiRequest('/user/profile');
+      const res = await apiRequest('/users');
       const data = await res.json();
       if (data.success) {
         setUsers([data.data.user]);

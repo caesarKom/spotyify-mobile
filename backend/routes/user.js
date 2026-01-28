@@ -8,7 +8,8 @@ import {
   getLikedMusic,
   getRecentlyPlayed,
   changePassword,
-  deleteAccount
+  deleteAccount,
+  getAllUsers
 } from '../controllers/userController.js';
 import { protect } from '../middleware/auth.js';
 import { uploadImage } from '../middleware/upload.js';
@@ -16,6 +17,7 @@ import { uploadImage } from '../middleware/upload.js';
 const router = express.Router();
 
 // All routes are protected
+router.get('/users', protect, getAllUsers)
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
 router.post('/avatar', protect, uploadImage.single('image'), uploadAvatar);
