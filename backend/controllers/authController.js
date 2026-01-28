@@ -124,9 +124,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message:
-        "Account created successfully. Check your email to verify your account.",
-        mediaToken: mediaToken?.token,
+      message: "Account created successfully. Check your email to verify your account.",
       user: {
         id: user._id,
         username: user.username,

@@ -36,10 +36,11 @@ const UsersManagerPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await apiRequest('/users');
+      const res = await apiRequest('/user/users');
       const data = await res.json();
+      console.log("Users ", data)
       if (data.success) {
-        setUsers([data.data.user]);
+        setUsers(data.data);
       }
     } catch (err:any) {
       console.error('Error fetching users:', err);
