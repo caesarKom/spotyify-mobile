@@ -389,7 +389,8 @@ const deleteAccount = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId)
+    const userId = await req.params.id
+    const user = await User.findById(userId)
 
     if (!user) {
       return res.status(404).json({
@@ -409,7 +410,7 @@ const deleteUser = async (req, res) => {
       }
     }
 
-    await User.findByIdAndDelete(user._id)
+    await User.deleteOne(userId)
 
     res.status(200).json({
       success: true,

@@ -1,6 +1,10 @@
-import { Edit } from "lucide-react"
+import { Edit, Trash2 } from "lucide-react"
 import { useAuthImage } from "../hooks/useAuthImage"
 import type { UserProps } from "../pages/user-page"
+import { useState } from "react"
+import { DeleteUserModal } from "./modals/delete-modal"
+import { apiRequest } from "../config/api"
+import toast from "react-hot-toast"
 
 interface Props {
   user: UserProps
@@ -35,7 +39,34 @@ export const UsersCard = ({
   filteredUsers: UserProps[]
   setEditingUser: (user: UserProps) => void
 }) => {
+
+  const [selectedUser, setSelectedUser] = useState<UserProps | null>(null)
+const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+console.log("Selected user ", selectedUser)
+
+const handleDeleteUser = async () => {
+  if (!selectedUser) return
+  
+  try {
+    // Wywołaj API do usunięcia użytkownika
+    const response = await apiRequest(`/user/delete`, {
+      method: "DELETE",
+    })
+    console.log("response delete user ", response)
+    
+    if (response.ok) {
+      toast.success("User deleted successfully")
+      
+    }
+  } catch (error) {
+    console.error("Failed to delete user:", error)
+    toast.error("Failed to delete user")
+  }
+}
+
   return (
+    <>
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <table className="w-full">
         <thead className="bg-gray-50 border-b">
@@ -81,17 +112,36 @@ export const UsersCard = ({
                 </span>
               </td>
               <td className="px-6 py-4">
-                <button
+                <div className="flex items-center space-x-3">
+                  <button
                   onClick={() => setEditingUser(user)}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-blue-600 hover:text-blue-800 cursor-pointer"
                 >
                   <Edit size={18} />
                 </button>
+
+                <button onClick={() => {
+    setSelectedUser(user)
+    setShowDeleteModal(true)
+  }} className="text-red-500 hover:text-red-700 cursor-pointer"><Trash2 size={18} /></button>
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
+
+    {showDeleteModal && selectedUser && (
+  <DeleteUserModal
+    user={selectedUser}
+    onClose={() => {
+      setShowDeleteModal(false)
+      setSelectedUser(null)
+    }}
+    onConfirm={handleDeleteUser}
+  />
+)}
+</>
   )
 }

@@ -27,6 +27,6 @@ router.get('/liked-music', protect, getLikedMusic);
 router.get('/recently-played', protect, getRecentlyPlayed);
 router.put('/change-password', protect, changePassword);
 router.delete('/account', protect, deleteAccount);
-router.delete('/delete', protect, deleteUser);
+router.delete('/delete/:id', protect, deleteUser);
 
 export default router;
