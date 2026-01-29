@@ -62,7 +62,7 @@ const getProfile = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   try {
-    const { firstName, lastName, bio, favoriteGenres, role } = req.body
+    const { firstName, lastName, bio, favoriteGenres, role, isVerified } = req.body
 
     const user = await User.findById(req.user.userId)
 
@@ -77,6 +77,7 @@ const updateProfile = async (req, res) => {
     if (firstName !== undefined) user.profile.firstName = firstName
     if (lastName !== undefined) user.profile.lastName = lastName
     if (bio !== undefined) user.profile.bio = bio
+    if (isVerified !== undefined) user.isVerified = isVerified
 
     // Update your favorite genres
     if (favoriteGenres) {

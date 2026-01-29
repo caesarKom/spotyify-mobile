@@ -18,6 +18,7 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
     lastName: user.profile?.lastName || "",
     bio: user.profile?.bio || "",
     favoriteGenres: user.preferences?.favoriteGenres?.join(", ") || "",
+    isVerified: user?.isVerified || false
   })
   const [avatar, setAvatar] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(avatarUrl || null)
@@ -160,6 +161,47 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
               placeholder="user | admin"
               className="w-full border rounded-lg px-3 py-2"
             />
+          </div>
+          <div className="flex items-center">
+            <label className="relative flex items-center space-x-3 cursor-pointer group">
+  <input
+    type="checkbox"
+    checked={formData.isVerified}
+    onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
+    className="
+      peer
+      h-6 w-6
+      appearance-none
+      rounded-lg
+      border-2 border-gray-300
+      bg-white
+      checked:border-blue-500 checked:bg-blue-500
+      hover:border-blue-400
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+      transition-all duration-200
+      cursor-pointer
+    "
+  />
+  <svg
+    className="
+      absolute
+      left-0
+      h-6 w-6
+      pointer-events-none
+      fill-none
+      stroke-white
+      stroke-[3px]
+      opacity-0
+      peer-checked:opacity-100
+      transition-opacity duration-200
+    "
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M5 12l5 5l10 -10" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+  <span className="text-gray-700 font-medium">Is Verified</span>
+</label>
           </div>
           <div className="flex gap-2">
             <button
