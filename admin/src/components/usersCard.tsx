@@ -45,16 +45,16 @@ const [showDeleteModal, setShowDeleteModal] = useState(false)
 
 console.log("Selected user ", selectedUser)
 
-const handleDeleteUser = async () => {
+const handleDeleteUser = async (userId:string) => {
   if (!selectedUser) return
   
   try {
     // Wywołaj API do usunięcia użytkownika
-    const response = await apiRequest(`/user/delete`, {
+    const response = await apiRequest(`/user/delete/${userId}`, {
       method: "DELETE",
     })
     console.log("response delete user ", response)
-    
+
     if (response.ok) {
       toast.success("User deleted successfully")
       
@@ -139,7 +139,7 @@ const handleDeleteUser = async () => {
       setShowDeleteModal(false)
       setSelectedUser(null)
     }}
-    onConfirm={handleDeleteUser}
+    onConfirm={() => handleDeleteUser(selectedUser._id)}
   />
 )}
 </>

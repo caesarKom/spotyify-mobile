@@ -1,5 +1,12 @@
 import { AlertTriangleIcon } from "lucide-react"
 import { useState } from "react"
+import type { UserProps } from "../../pages/user-page"
+
+interface Props {
+  user: UserProps
+  onClose: () => void
+  onConfirm: () => Promise<void>
+}
 
 
 export const DeleteUserModal = ({ user, onClose, onConfirm }: Props) => {
