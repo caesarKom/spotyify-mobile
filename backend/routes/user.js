@@ -9,7 +9,8 @@ import {
   getRecentlyPlayed,
   changePassword,
   deleteAccount,
-  getAllUsers
+  getAllUsers,
+  deleteUser
 } from '../controllers/userController.js';
 import { protect } from '../middleware/auth.js';
 import { uploadImage } from '../middleware/upload.js';
@@ -26,5 +27,6 @@ router.get('/liked-music', protect, getLikedMusic);
 router.get('/recently-played', protect, getRecentlyPlayed);
 router.put('/change-password', protect, changePassword);
 router.delete('/account', protect, deleteAccount);
+router.delete('/delete', protect, deleteUser);
 
 export default router;

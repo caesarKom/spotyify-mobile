@@ -126,10 +126,13 @@ const uploadAvatar = async (req, res) => {
 
     // Delete the old avatar if it exists
     if (user.profile.avatar) {
-      const oldAvatarPath = path.join(__dirname, "..", user.profile.avatar)
-      if (fs.existsSync(oldAvatarPath)) {
-        fs.unlinkSync(oldAvatarPath)
-      }
+      const oldFile = user.profile.avatar.replace(
+        `${process.env.BASE_URL}/`,
+        ""
+      ) // delete domain
+      const oldPath = path.join(__dirname, "..", oldFile)
+
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath)
     }
     const fileName = path.basename(req.file.path)
     user.profile.avatar = `${process.env.BASE_URL}/uploads/images/${fileName}`
@@ -170,8 +173,8 @@ const deleteAvatar = async (req, res) => {
         message: "You dont have an avatar set",
       })
     }
-
-    const avatarPath = path.join(__dirname, "..", user.profile.avatar)
+    const oldFile = user.profile.avatar.replace(`${process.env.BASE_URL}/`, "")
+    const avatarPath = path.join(__dirname, "..", oldFile)
     if (fs.existsSync(avatarPath)) {
       fs.unlinkSync(avatarPath)
     }
@@ -339,17 +342,29 @@ const deleteAccount = async (req, res) => {
     const userMusic = await Music.find({ uploadedBy: user._id })
 
     for (const music of userMusic) {
-      if (music.filePath && fs.existsSync(music.filePath)) {
-        fs.unlinkSync(music.filePath)
+      if (music.filePath) {
+        const oldFile = music.filePath.replace(`${process.env.BASE_URL}/`, "")
+        const oldPath = path.join(__dirname, "..", oldFile)
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath)
+        }
       }
 
-      if (music.coverImage && fs.existsSync(music.coverImage)) {
-        fs.unlinkSync(music.coverImage)
+      if (music.coverImage) {
+        const oldFile = music.coverImage.replace(`${process.env.BASE_URL}/`, "")
+        const oldPath = path.join(__dirname, "..", oldFile)
+        if (fs.existsSync(oldPath)) {
+          fs.unlinkSync(oldPath)
+        }
       }
     }
 
     if (user.profile.avatar) {
-      const avatarPath = path.join(__dirname, "..", user.profile.avatar)
+      const oldFile = user.profile.avatar.replace(
+        `${process.env.BASE_URL}/`,
+        ""
+      )
+      const avatarPath = path.join(__dirname, "..", oldFile)
       if (fs.existsSync(avatarPath)) {
         fs.unlinkSync(avatarPath)
       }
@@ -371,6 +386,42 @@ const deleteAccount = async (req, res) => {
   }
 }
 
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId)
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      })
+    }
+
+    if (user.profile.avatar) {
+      const oldFile = user.profile.avatar.replace(
+        `${process.env.BASE_URL}/`,
+        ""
+      )
+      const avatarPath = path.join(__dirname, "..", oldFile)
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath)
+      }
+    }
+
+    await User.findByIdAndDelete(user._id)
+
+    res.status(200).json({
+      success: true,
+      message: "The user was deleted successfully",
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    })
+  }
+}
+
 export {
   getAllUsers,
   getProfile,
@@ -381,4 +432,5 @@ export {
   getRecentlyPlayed,
   changePassword,
   deleteAccount,
+  deleteUser,
 }
