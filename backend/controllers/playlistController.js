@@ -103,6 +103,10 @@ export const updatePlaylist = async (req, res) => {
 }
 
 export const deletePlaylist = async (req, res) => {
+  console.log('=== DELETE PLAYLIST DEBUG ===');
+    console.log('User ID from token:', req.user?.userId);
+    console.log('User role:', req.user?.role);
+    console.log('Playlist ID to delete:', req.params.id);
   const isAdmin = req.user.role === "admin"
   const playlist = await Playlist.findById(req.params.id)
   if (!playlist) throw new NotFoundError("Playlist not found")
@@ -110,7 +114,7 @@ export const deletePlaylist = async (req, res) => {
     throw new UnauthenticatedError("You can delete only your own playlists")
   await Playlist.findByIdAndDelete(req.params.id)
   // usuń też z listy użytkownika
-  await User.findByIdAndUpdate(req.user.userId, {
+  await User.findByIdAndUpdate(playlist.owner, {
     $pull: { "preferences.playlists": req.params.id },
   })
   res.status(StatusCodes.OK).json({ success: true, msg: "Playlist deleted" })
