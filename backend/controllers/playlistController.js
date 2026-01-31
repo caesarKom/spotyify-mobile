@@ -103,9 +103,10 @@ export const updatePlaylist = async (req, res) => {
 }
 
 export const deletePlaylist = async (req, res) => {
+  const isAdmin = req.user.role === "admin"
   const playlist = await Playlist.findById(req.params.id)
   if (!playlist) throw new NotFoundError("Playlist not found")
-  if (playlist.owner.toString() !== req.user.userId)
+  if (!isAdmin && playlist.owner.toString() !== req.user.userId)
     throw new UnauthenticatedError("You can delete only your own playlists")
   await Playlist.findByIdAndDelete(req.params.id)
   // usuń też z listy użytkownika
@@ -117,6 +118,7 @@ export const deletePlaylist = async (req, res) => {
 
 /* ----------- TRACKS ----------- */
 export const addTrack = async (req, res) => {
+  const isAdmin = req.user.role === "admin"
   const { musicId } = req.body
   if (!musicId) throw new BadRequestError("musicId is required")
   const [playlist, music] = await Promise.all([
@@ -125,17 +127,18 @@ export const addTrack = async (req, res) => {
   ])
   if (!playlist) throw new NotFoundError("Playlist not found")
   if (!music) throw new NotFoundError("Music not found")
-  if (playlist.owner.toString() !== req.user.userId)
+  if (!isAdmin && playlist.owner.toString() !== req.user.userId)
     throw new UnauthenticatedError("You can edit only your own playlists")
   await playlist.addTrack(musicId)
   res.status(StatusCodes.OK).json({ success: true, msg: "Track added" })
 }
 
 export const removeTrack = async (req, res) => {
+  const isAdmin = req.user.role === "admin"
   const { musicId } = req.params
   const playlist = await Playlist.findById(req.params.id)
   if (!playlist) throw new NotFoundError("Playlist not found")
-  if (playlist.owner.toString() !== req.user.userId)
+  if (!isAdmin && playlist.owner.toString() !== req.user.userId)
     throw new UnauthenticatedError("You can edit only your own playlists")
   await playlist.removeTrack(musicId)
   res.status(StatusCodes.OK).json({ success: true, msg: "Track removed" })
@@ -143,9 +146,10 @@ export const removeTrack = async (req, res) => {
 
 /* ----------- FOLLOW ----------- */
 export const followPlaylist = async (req, res) => {
+  const isAdmin = req.user.role === "admin"
   const playlist = await Playlist.findById(req.params.id)
   if (!playlist) throw new NotFoundError("Playlist not found")
-  if (playlist.owner.toString() === req.user.userId)
+  if (!isAdmin && playlist.owner.toString() === req.user.userId)
     throw new BadRequestError("You cannot follow your own playlist")
   await playlist.follow(req.user.userId)
   res.status(StatusCodes.OK).json({ success: true, msg: "Playlist followed" })
