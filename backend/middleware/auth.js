@@ -31,7 +31,7 @@ export const protect = async (req, res, next) => {
       })
     }
 
-    req.user = {userId: decoded.userId, name: decoded.username}
+    req.user = {userId: decoded.userId, name: decoded.username, role: decoded.role, }
     next()
   } catch (error) {
     return res.status(401).json({
