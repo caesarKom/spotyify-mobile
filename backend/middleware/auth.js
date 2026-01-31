@@ -15,9 +15,9 @@ export const protect = async (req, res, next) => {
   const token = authHeader.split(" ")[1]
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-console.log('Decoded token:', decoded);
+
     const user = await User.findById(decoded.userId)
-    console.log('Decoded user:', user);
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -31,7 +31,7 @@ console.log('Decoded token:', decoded);
       })
     }
 
-    req.user = {userId: decoded.userId, name: decoded.username, role: decoded.role, }
+    req.user = {userId: decoded.userId, name: decoded.username, role: user.role, }
     next()
   } catch (error) {
     return res.status(401).json({
