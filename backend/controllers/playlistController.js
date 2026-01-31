@@ -180,7 +180,7 @@ export const getPublicPlaylists = async (req, res) => {
       break
   }
   const playlists = await Playlist.find(filters)
-    .populate("owner", "username")
+    //.populate("owner", "username")
     .populate("tracks", "title artist")
     .sort(sortObj)
     .skip(skip)

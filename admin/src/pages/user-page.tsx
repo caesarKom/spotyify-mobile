@@ -1,18 +1,19 @@
-import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
-import { apiRequest } from "../config/api";
-import EditUserModal from "../components/modals/edit-user";
-import { UsersCard } from "../components/usersCard";
+import { Search } from "lucide-react"
+import { useEffect, useState } from "react"
+import { apiRequest } from "../config/api"
+import EditUserModal from "../components/modals/edit-user"
+import { UsersCard } from "../components/usersCard"
+import toast from "react-hot-toast"
 
 export interface UserProps {
-  _id: string;
-  username: string;
-  email: string;
-  role?: "user"|"admin"
+  _id: string
+  username: string
+  email: string
+  role?: "user" | "admin"
   isVerified?: boolean
   profile: {
     firstName?: string
-    lastName?:string
+    lastName?: string
     avatar?: string
     bio?: string
   }
@@ -24,61 +25,63 @@ export interface UserProps {
 }
 
 const UsersManagerPage = () => {
-  const [users, setUsers] = useState<UserProps[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [editingUser, setEditingUser] = useState<UserProps|null>(null);
-
-  console.log("Editing user ", editingUser)
+  const [users, setUsers] = useState<UserProps[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [editingUser, setEditingUser] = useState<UserProps | null>(null)
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers()
+  }, [])
 
   const fetchUsers = async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await apiRequest('/user/users');
-      const data = await res.json();
+      const res = await apiRequest("/user/users")
+      const data = await res.json()
 
       if (data.success) {
-        setUsers(data.data);
+        setUsers(data.data)
       }
-    } catch (err:any) {
-      console.error('Error fetching users:', err);
-      alert('Error loading users: ' + err.message);
+    } catch (err: any) {
+      console.error("Error fetching users:", err)
+      toast.error("Error loading users: " + err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const updateUser = async (userId:string, updates:UserProps) => {
+  const updateUser = async (userId: string, updates: UserProps) => {
     try {
       const res = await apiRequest(`/user/profile/${userId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates)
-      });
-      const data = await res.json();
+        method: "PUT",
+        body: JSON.stringify(updates),
+      })
+      const data = await res.json()
       if (data.success) {
-        alert('User updated successfully');
-        setEditingUser(null);
-        fetchUsers();
+        toast.success("User updated successfully")
+        setEditingUser(null)
+        fetchUsers()
       }
-    } catch (err:any) {
-      alert('Error updating user: ' + err.message);
+    } catch (err: any) {
+      toast.error("Error updating user: " + err.message)
     }
-  };
+  }
 
-  const filteredUsers = users.filter(u => 
-    u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(
+    (u) =>
+      u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   return (
     <div>
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={20}
+          />
           <input
             type="text"
             placeholder="Search users..."
@@ -92,18 +95,21 @@ const UsersManagerPage = () => {
       {loading ? (
         <div className="text-center py-12">Loading users...</div>
       ) : (
-        <UsersCard filteredUsers={filteredUsers} setEditingUser={setEditingUser} />
+        <UsersCard
+          filteredUsers={filteredUsers}
+          setEditingUser={setEditingUser}
+        />
       )}
 
       {editingUser && (
         <EditUserModal
           user={editingUser}
           onClose={() => setEditingUser(null)}
-          onSave={(updates:UserProps) => updateUser(editingUser._id, updates)}
+          onSave={(updates: UserProps) => updateUser(editingUser._id, updates)}
         />
       )}
     </div>
-  );
-};
+  )
+}
 
 export default UsersManagerPage

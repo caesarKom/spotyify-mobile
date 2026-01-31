@@ -10,6 +10,7 @@ import type { Playlist } from "../types"
 
 const PlayList = () => {
   const [playlist, setPlaylist] = useState<Playlist[]>([])
+  console.log("Play lists ", playlist)
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [searchValue, setSearchValue] = useState("")
@@ -50,7 +51,7 @@ const PlayList = () => {
         ? `&search=${encodeURIComponent(searchTerm)}`
         : ""
 
-      const res = await apiRequest(`/playlist`)
+      const res = await apiRequest(`/playlist/public`)
       const data = await res.json()
 
       if (data.success) {

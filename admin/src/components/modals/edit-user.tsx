@@ -3,6 +3,7 @@ import { useState } from "react"
 import { apiRequest } from "../../config/api"
 import { useAuthImage } from "../../hooks/useAuthImage"
 import type { UserProps } from "../../pages/user-page"
+import toast from "react-hot-toast"
 
 interface Props {
   user: UserProps
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const EditUserModal = ({ user, onClose, onSave }: Props) => {
+
   const avatarUrl = useAuthImage(user.profile.avatar!)
   const [formData, setFormData] = useState({
     role: user?.role || "",
@@ -25,6 +27,7 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+
     if (file) {
       setAvatar(file)
       const reader = new FileReader()
@@ -53,10 +56,10 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
         })
         const data = await res.json()
         if (data.success) {
-          alert("Avatar image updated successfully")
+         toast.success("Avatar image updated successfully")
         }
       } catch (err: any) {
-        alert("Error uploading avatar: " + err.message)
+        toast.error("Error uploading avatar: " + err.message)
       }
     }
   }
@@ -206,13 +209,13 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300"
+              className="flex-1 bg-gray-200 py-2 rounded-lg hover:bg-gray-300 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700"
+              className="flex-1 bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 cursor-pointer"
             >
               Save
             </button>
