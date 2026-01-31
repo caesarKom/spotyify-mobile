@@ -61,10 +61,12 @@ const getProfile = async (req, res) => {
 }
 
 const updateProfile = async (req, res) => {
+
   try {
+    const userId = req.params.id
     const { firstName, lastName, bio, favoriteGenres, role, isVerified } = req.body
 
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(userId)
 
     if (!user) {
       return res.status(404).json({

@@ -43,17 +43,13 @@ export const UsersCard = ({
   const [selectedUser, setSelectedUser] = useState<UserProps | null>(null)
 const [showDeleteModal, setShowDeleteModal] = useState(false)
 
-console.log("Selected user ", selectedUser)
-
 const handleDeleteUser = async (id:string) => {
   if (!selectedUser) return
   
   try {
-    // Wywołaj API do usunięcia użytkownika
     const response = await apiRequest(`/user/delete/${id}`, {
       method: "DELETE",
     })
-    console.log("response delete user ", response)
 
     if (response.ok) {
       toast.success("User deleted successfully")

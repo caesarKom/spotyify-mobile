@@ -111,7 +111,7 @@ export const register = async (req, res) => {
       password,
     })
 
-    const otpCode = generateOTP()
+    const otpCode = generateOTP(6)
     const otpExpiry = getExpiryTime(30) // 30 minutes
 
     user.otp.code = otpCode

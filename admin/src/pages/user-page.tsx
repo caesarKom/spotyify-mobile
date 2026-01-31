@@ -29,6 +29,8 @@ const UsersManagerPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingUser, setEditingUser] = useState<UserProps|null>(null);
 
+  console.log("Editing user ", editingUser)
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -38,7 +40,7 @@ const UsersManagerPage = () => {
     try {
       const res = await apiRequest('/user/users');
       const data = await res.json();
-      console.log("Users ", data)
+
       if (data.success) {
         setUsers(data.data);
       }
@@ -52,7 +54,7 @@ const UsersManagerPage = () => {
 
   const updateUser = async (userId:string, updates:UserProps) => {
     try {
-      const res = await apiRequest('/user/profile', {
+      const res = await apiRequest(`/user/profile/${userId}`, {
         method: 'PUT',
         body: JSON.stringify(updates)
       });
