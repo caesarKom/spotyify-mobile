@@ -103,10 +103,7 @@ export const updatePlaylist = async (req, res) => {
 }
 
 export const deletePlaylist = async (req, res) => {
-  console.log('=== DELETE PLAYLIST DEBUG ===');
-    console.log('User ID from token:', req.user?.userId);
-    console.log('User role:', req.user?.role);
-    console.log('Playlist ID to delete:', req.params.id);
+
   const isAdmin = req.user.role === "admin"
   const playlist = await Playlist.findById(req.params.id)
   if (!playlist) throw new NotFoundError("Playlist not found")
