@@ -70,7 +70,7 @@ const UsersManagerPage = () => {
   const updateUser = async (userId: string, updates: UserUpdateData) => {
     try {
       const res = await apiRequest(`/user/profile/${userId}`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify(updates),
       })
       const data = await res.json()

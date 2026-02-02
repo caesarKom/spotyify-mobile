@@ -20,7 +20,7 @@ const router = express.Router();
 // All routes are protected
 router.get('/users', protect, getAllUsers)
 router.get('/profile', protect, getProfile);
-router.patch('/profile/:id', protect, updateProfile);
+router.put('/profile/:id', protect, updateProfile);
 router.post('/avatar', protect, uploadImage.single('image'), uploadAvatar);
 router.delete('/avatar', protect, deleteAvatar);
 router.get('/liked-music', protect, getLikedMusic);
