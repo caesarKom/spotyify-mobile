@@ -8,6 +8,7 @@ import UsersManagerPage from './pages/user-page';
 import MusicManagerPage from './pages/music-page';
 import { useState } from 'react';
 import PlayList from './pages/playlist';
+import { Footer } from './components/footer';
 
 const AdminPanel = () => {
   const { isAuthenticated, user, logout } = useAuthStore();
@@ -45,6 +46,7 @@ const [currentView, setCurrentView] = useState('dashboard');
         {currentView === 'music' && <MusicManagerPage />}
         {currentView === 'playlist' && <PlayList />}
       </main>
+      <Footer />
     </div>
   );
 };

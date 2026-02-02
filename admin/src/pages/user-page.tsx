@@ -11,6 +11,7 @@ export interface UserProps {
   email: string
   role?: "user" | "admin"
   isVerified?: boolean
+  mediaToken?: string
   profile: {
     firstName?: string
     lastName?: string

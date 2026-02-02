@@ -10,7 +10,6 @@ import type { Playlist } from "../types"
 
 const PlayList = () => {
   const [playlist, setPlaylist] = useState<Playlist[]>([])
-  console.log("Play lists ", playlist)
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [searchValue, setSearchValue] = useState("")
