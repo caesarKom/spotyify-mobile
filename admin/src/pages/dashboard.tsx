@@ -25,7 +25,7 @@ const Dashboard = () => {
       ]);
       
       const musicData = await musicRes.json();
-      console.log("music data stats ", musicData)
+
       setStats({
         users: 1,
         music: musicData.pagination?.totalItems || 0,

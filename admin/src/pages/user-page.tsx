@@ -5,6 +5,21 @@ import EditUserModal from "../components/modals/edit-user"
 import { UsersCard } from "../components/usersCard"
 import toast from "react-hot-toast"
 
+export interface UserUpdateData {
+  role?: string;
+  isVerified?: boolean;
+  mediaToken?: string;
+  profile?: {
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    avatar?: string;
+  };
+  preferences?: {
+    favoriteGenres?: string[];
+  };
+}
+
 export interface UserProps {
   _id: string
   username: string
@@ -52,10 +67,10 @@ const UsersManagerPage = () => {
     }
   }
 
-  const updateUser = async (userId: string, updates: UserProps) => {
+  const updateUser = async (userId: string, updates: UserUpdateData) => {
     try {
       const res = await apiRequest(`/user/profile/${userId}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(updates),
       })
       const data = await res.json()
@@ -106,7 +121,7 @@ const UsersManagerPage = () => {
         <EditUserModal
           user={editingUser}
           onClose={() => setEditingUser(null)}
-          onSave={(updates: UserProps) => updateUser(editingUser._id, updates)}
+          onSave={updateUser}
         />
       )}
     </div>

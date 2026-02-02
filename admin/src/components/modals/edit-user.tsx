@@ -8,7 +8,7 @@ import toast from "react-hot-toast"
 interface Props {
   user: UserProps
   onClose: () => void
-  onSave: (data: UserProps) => void
+  onSave: (userId: string, updates: Partial<UserProps>) => Promise<void>
 }
 
 const EditUserModal = ({ user, onClose, onSave }: Props) => {
@@ -43,7 +43,7 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
 
   const handleSave = async () => {
     // First update the user data
-    await onSave(formData as unknown as UserProps)
+    await onSave(user._id, formData as unknown as UserProps)
 
     // Then upload cover image if selected
     if (avatar) {
@@ -74,69 +74,47 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
       })
       const data = await res.json()
       
-      if (data.success && data.token) {
+      if (data.success && data.data.token) {
         // Aktualizuj stan lokalny
-        setFormData({ ...formData, mediaToken: data.token })
+        setFormData({ ...formData, mediaToken: data.data.token })
         
-        // Wyślij aktualizację do API
-        try {
-          const updateRes = await apiRequest(`/user/profile/${user._id}`, {
-            method: "PUT",
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ mediaToken: data.token })
-          })
-          
-          const updateData = await updateRes.json()
-          
-          if (updateData.success) {
-            toast.success("Media token generated and saved successfully")
-            // Możesz też odświeżyć dane użytkownika, jeśli potrzebujesz
-            if (onSave) {
-              onSave({ ...user, mediaToken: data.token } as UserProps)
-            }
-          } else {
-            toast.error("Failed to save media token")
-          }
-        } catch (updateErr: any) {
-          toast.error("Error saving media token: " + updateErr.message)
-          // Zachowaj token w stanie lokalnym mimo błędu
+        // Przygotuj aktualizację tylko dla tokena
+        const tokenUpdate = {
+          mediaToken: data.data.token
         }
+        
+        // Wywołaj funkcję onSave z aktualizacją tokena
+        await onSave(user._id, tokenUpdate)
+        
+        toast.success("Media token generated and saved successfully")
       } else {
-        toast.error("Failed to generate media token")
+        toast.error(data.message || "Failed to generate media token")
       }
     } catch (err: any) {
+      console.error("Generate token error:", err)
       toast.error("Error generating media token: " + err.message)
     } finally {
       setIsGeneratingToken(false)
     }
   }
 
-  // Funkcja do resetowania tokena
   const resetMediaToken = async () => {
+    setIsGeneratingToken(true)
     try {
-      setIsGeneratingToken(true)
-      const updateRes = await apiRequest(`/user/profile/${user._id}`, {
-        method: "PUT",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ mediaToken: "" })
-      })
-      
-      const updateData = await updateRes.json()
-      
-      if (updateData.success) {
-        setFormData({ ...formData, mediaToken: "" })
-        toast.success("Media token reset successfully")
-        if (onSave) {
-          onSave({ ...user, mediaToken: "" } as UserProps)
-        }
-      } else {
-        toast.error("Failed to reset media token")
+      // Przygotuj aktualizację do resetu tokena
+      const tokenUpdate: {mediaToken:string} = {
+        mediaToken: ""
       }
+      
+      // Wywołaj funkcję onSave z resetem tokena
+      await onSave(user._id, tokenUpdate)
+      
+      // Aktualizuj stan lokalny
+      setFormData({ ...formData, mediaToken: "" })
+      
+      toast.success("Media token reset successfully")
     } catch (err: any) {
+      console.error("Reset token error:", err)
       toast.error("Error resetting media token: " + err.message)
     } finally {
       setIsGeneratingToken(false)
