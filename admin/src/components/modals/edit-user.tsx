@@ -77,15 +77,7 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
       if (data.success && data.data.token) {
         // Aktualizuj stan lokalny
         setFormData({ ...formData, mediaToken: data.data.token })
-        
-        // Przygotuj aktualizację tylko dla tokena
-        const tokenUpdate = {
-          mediaToken: data.data.token
-        }
-        
-        // Wywołaj funkcję onSave z aktualizacją tokena
-        await onSave(user._id, tokenUpdate)
-        
+  
         toast.success("Media token generated and saved successfully")
       } else {
         toast.error(data.message || "Failed to generate media token")
@@ -99,27 +91,30 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
   }
 
   const resetMediaToken = async () => {
-    setIsGeneratingToken(true)
-    try {
-      // Przygotuj aktualizację do resetu tokena
-      const tokenUpdate: {mediaToken:string} = {
-        mediaToken: ""
-      }
-      
-      // Wywołaj funkcję onSave z resetem tokena
-      await onSave(user._id, tokenUpdate)
-      
+  setIsGeneratingToken(true);
+  try {
+    const res = await apiRequest(`/media-token/user/${user._id}/reset`, {
+      method: "DELETE",
+    });
+    
+    const data = await res.json();
+    console.log("Reset token response:", data);
+    
+    if (data.success) {
       // Aktualizuj stan lokalny
-      setFormData({ ...formData, mediaToken: "" })
+      setFormData({ ...formData, mediaToken: "" });
       
-      toast.success("Media token reset successfully")
-    } catch (err: any) {
-      console.error("Reset token error:", err)
-      toast.error("Error resetting media token: " + err.message)
-    } finally {
-      setIsGeneratingToken(false)
+      toast.success(data.message || "Media token reset successfully");
+    } else {
+      toast.error(data.message || "Failed to reset media token");
     }
+  } catch (err: any) {
+    console.error("Reset token error:", err);
+    toast.error("Error resetting media token: " + err.message);
+  } finally {
+    setIsGeneratingToken(false);
   }
+};
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
