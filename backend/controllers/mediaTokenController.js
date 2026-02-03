@@ -3,7 +3,7 @@ import MediaToken from '../models/MediaToken.js';
 import User from '../models/User.js';
 
 export const getMyMediaToken = async (req, res) => {
-  const { userId } = req.params.id
+  const userId = req.params.id
   try {
     const user = await User.findById(userId)
       .populate('mediaToken');
@@ -40,7 +40,7 @@ export const getMyMediaToken = async (req, res) => {
 
 export const createMediaToken = async (req, res) => {
   console.log("start create media token")
-  const { userId } = req.params.id
+  const userId = req.params.id
   console.log(" user id params ", userId)
   try {
     const user = await User.findById(userId);
@@ -75,7 +75,7 @@ export const createMediaToken = async (req, res) => {
 };
 
 export const regenerateMediaToken = async (req, res) => {
-  const { userId } = req.params.id
+  const userId = req.params.id
   try {
     const user = await User.findById(userId);
     
@@ -112,7 +112,7 @@ export const regenerateMediaToken = async (req, res) => {
 };
 
 export const updateMediaToken = async (req, res) => {
-  const { userId } = req.params.id
+  const userId = req.params.id
   try {
     const { name, scopes, requestsPerDay, bytesPerMonth } = req.body;
     const user = await User.findById(userId);
@@ -156,7 +156,7 @@ export const updateMediaToken = async (req, res) => {
 };
 
 export const deactivateMediaToken = async (req, res) => {
-  const { userId } = req.params.id
+  const userId = req.params.id
   try {
     const user = await User.findById(userId);
     
