@@ -68,8 +68,8 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
   const generateMediaToken = async () => {
     setIsGeneratingToken(true)
     try {
-      // Generuj token
-      const res = await apiRequest(`/media-token`, {
+      console.log("user id ", user._id)
+      const res = await apiRequest(`/media-token/${user._id}`, {
         method: "POST",
       })
       const data = await res.json()
@@ -93,7 +93,7 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
   const resetMediaToken = async () => {
   setIsGeneratingToken(true);
   try {
-    const res = await apiRequest(`/media-token/user/${user._id}/reset`, {
+    const res = await apiRequest(`/media-token/${user._id}`, {
       method: "DELETE",
     });
     

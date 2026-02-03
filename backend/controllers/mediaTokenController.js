@@ -39,10 +39,12 @@ export const getMyMediaToken = async (req, res) => {
 };
 
 export const createMediaToken = async (req, res) => {
+  console.log("start create media token")
   const { userId } = req.params.id
+  console.log(" user id params ", userId)
   try {
     const user = await User.findById(userId);
-    
+    console.log("fetch user from mongo db ", user)
     // Sprawdź czy użytkownik może mieć token (np. tylko zweryfikowani)
     if (!user.isVerified) {
       return res.status(403).json({
@@ -51,9 +53,9 @@ export const createMediaToken = async (req, res) => {
       });
     }
     
-    // Utwórz nowy token przez metodę użytkownika
+    console.log("start create media token ")
     const mediaToken = await user.createMediaToken();
-    
+    console.log("Media token create ", mediaToken)
     res.status(201).json({
       success: true,
       message: 'Media token created successfully',
