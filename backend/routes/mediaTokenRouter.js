@@ -11,13 +11,13 @@ import {
 
 const router = express.Router();
 
-// Wszystkie routes wymagają autoryzacji
+// all routes need autorization
 router.use(protect);
 
-router.get('/', getMyMediaToken);
-router.post('/', createMediaToken);
-router.post('/regenerate', regenerateMediaToken);
-router.put('/', updateMediaToken);
-router.delete('/', deactivateMediaToken);
+router.get('/:id', getMyMediaToken);
+router.post('/:id', createMediaToken);
+router.post('/regenerate/:id', regenerateMediaToken);
+router.put('/:id', updateMediaToken);
+router.delete('/:id', deactivateMediaToken);
 
 export default router;

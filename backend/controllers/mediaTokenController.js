@@ -3,8 +3,9 @@ import MediaToken from '../models/MediaToken.js';
 import User from '../models/User.js';
 
 export const getMyMediaToken = async (req, res) => {
+  const { userId } = req.params.id
   try {
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(userId)
       .populate('mediaToken');
     
     if (!user.mediaToken) {
@@ -38,8 +39,9 @@ export const getMyMediaToken = async (req, res) => {
 };
 
 export const createMediaToken = async (req, res) => {
+  const { userId } = req.params.id
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(userId);
     
     // Sprawdź czy użytkownik może mieć token (np. tylko zweryfikowani)
     if (!user.isVerified) {
@@ -71,8 +73,9 @@ export const createMediaToken = async (req, res) => {
 };
 
 export const regenerateMediaToken = async (req, res) => {
+  const { userId } = req.params.id
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(userId);
     
     // Sprawdź czy istnieje stary token
     if (!user.mediaToken) {
@@ -107,9 +110,10 @@ export const regenerateMediaToken = async (req, res) => {
 };
 
 export const updateMediaToken = async (req, res) => {
+  const { userId } = req.params.id
   try {
     const { name, scopes, requestsPerDay, bytesPerMonth } = req.body;
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(userId);
     
     if (!user.mediaToken) {
       return res.status(404).json({
@@ -150,8 +154,9 @@ export const updateMediaToken = async (req, res) => {
 };
 
 export const deactivateMediaToken = async (req, res) => {
+  const { userId } = req.params.id
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(userId);
     
     if (!user.mediaToken) {
       return res.status(404).json({
