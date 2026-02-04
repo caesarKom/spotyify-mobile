@@ -20,11 +20,11 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
     bio: user.profile?.bio || "",
     favoriteGenres: user.preferences?.favoriteGenres?.join(", ") || "",
     isVerified: user?.isVerified || false,
-    mediaToken: user?.mediaToken || ""
   })
   const [avatar, setAvatar] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(avatarUrl || null)
   const [isGeneratingToken, setIsGeneratingToken] = useState(false)
+  const [mediaToken, setMediaToken] = useState(user.mediaToken)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -68,16 +68,13 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
   const generateMediaToken = async () => {
     setIsGeneratingToken(true)
     try {
-      console.log("user id ", user._id)
       const res = await apiRequest(`/media-token/${user._id}`, {
         method: "POST",
       })
       const data = await res.json()
       
       if (data.success && data.data.token) {
-        // Aktualizuj stan lokalny
-        setFormData({ ...formData, mediaToken: data.data.token })
-  
+  setMediaToken(data.data.mediaToken)
         toast.success("Media token generated and saved successfully")
       } else {
         toast.error(data.message || "Failed to generate media token")
@@ -97,13 +94,9 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
       method: "DELETE",
     });
     
-    const data = await res.json();
-    console.log("Reset token response:", data);
-    
+    const data = await res.json();    
     if (data.success) {
-      // Aktualizuj stan lokalny
-      setFormData({ ...formData, mediaToken: "" });
-      
+      setMediaToken("")
       toast.success(data.message || "Media token reset successfully");
     } else {
       toast.error(data.message || "Failed to reset media token");
@@ -221,13 +214,13 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
             <label className="block text-sm font-medium mb-1">Media Token</label>
             <div className="flex items-center space-x-2">
               <input
-                value={formData.mediaToken}
+                value={mediaToken}
                 disabled
                 placeholder="Click Generate to create media token"
                 className="w-full border rounded-lg px-3 py-2 bg-gray-50"
               />
               <div className="flex flex-col space-y-2">
-                {formData.mediaToken === "" ? (
+                {mediaToken === "" ? (
                   <button
                     onClick={generateMediaToken}
                     disabled={isGeneratingToken}
@@ -255,9 +248,9 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
                 )}
               </div>
             </div>
-            {formData.mediaToken && (
+            {mediaToken && (
               <p className="text-xs text-gray-500 mt-1">
-                Token: {formData.mediaToken}
+                Token: {mediaToken}
               </p>
             )}
           </div>
