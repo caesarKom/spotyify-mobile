@@ -213,13 +213,8 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
           <div>
             <label className="block text-sm font-medium mb-1">Media Token</label>
             <div className="flex items-center space-x-2">
-              <input
-                value={mediaToken}
-                disabled
-                placeholder="Click Generate to create media token"
-                className="w-full border rounded-lg px-3 py-2 bg-gray-50"
-              />
-              <div className="flex flex-col space-y-2">
+             
+              <div className="flex space-x-2">
                 {mediaToken === "" ? (
                   <button
                     onClick={generateMediaToken}
