@@ -1,7 +1,6 @@
 import { Music, Shield, Upload, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiRequest } from "../config/api";
-import { Footer } from "../components/footer";
 
 interface Stats {
   users: number
@@ -57,7 +56,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col">
       <div className="grow px-4">
         <h2 className="text-2xl font-bold mb-6">Dashboard Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

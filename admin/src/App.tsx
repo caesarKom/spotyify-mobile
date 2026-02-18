@@ -40,7 +40,7 @@ const [currentView, setCurrentView] = useState('dashboard');
     <div className="min-h-screen bg-gray-100">
       <Header />
       <Navigation currentView={currentView} setCurrentView={setCurrentView} />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 min-h-screen">
         {currentView === 'dashboard' && <Dashboard />}
         {currentView === 'users' && <UsersManagerPage />}
         {currentView === 'music' && <MusicManagerPage />}

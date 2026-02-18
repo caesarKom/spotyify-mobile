@@ -11,7 +11,7 @@ interface Props {
 
 export const PlaylistCard = ({ playlist, setEditingPlaylist }: Props) => {
     const imageSrc = useAuthImage(playlist.coverImage as string);
-
+console.log("Play lists ", playlist)
      const deletePlaylist = async (id:string) => {
         if (!confirm('Are you sure you want to delete this playlist?')) return;
         try {
