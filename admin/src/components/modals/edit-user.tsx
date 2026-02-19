@@ -1,5 +1,5 @@
 import { ImageIcon, Upload, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { apiRequest } from "../../config/api"
 import { useAuthImage } from "../../hooks/useAuthImage"
 import type { UserProps } from "../../pages/user-page"
@@ -12,7 +12,7 @@ interface Props {
 }
 
 const EditUserModal = ({ user, onClose, onSave }: Props) => {
-  const avatarUrl = useAuthImage(user.profile.avatar!)
+
   const [formData, setFormData] = useState({
     role: user?.role || "",
     firstName: user.profile?.firstName || "",
@@ -21,10 +21,18 @@ const EditUserModal = ({ user, onClose, onSave }: Props) => {
     favoriteGenres: user.preferences?.favoriteGenres?.join(", ") || "",
     isVerified: user?.isVerified || false,
   })
+  const avatarUrl = useAuthImage(user.profile.avatar!)
+
   const [avatar, setAvatar] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(avatarUrl || null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isGeneratingToken, setIsGeneratingToken] = useState(false)
   const [mediaToken, setMediaToken] = useState(user.mediaToken)
+
+  useEffect(() => {
+    if (avatarUrl && !avatar) { // Update only if the selected file is not present
+      setPreviewUrl(avatarUrl)
+    }
+  }, [avatarUrl, avatar])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

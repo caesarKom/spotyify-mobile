@@ -19,14 +19,16 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const [musicRes] = await Promise.all([
-        apiRequest('/music?limit=20')
+      const [musicRes, usersRes] = await Promise.all([
+        apiRequest('/music?limit=20'),
+        apiRequest('/user/users')
       ]);
       
       const musicData = await musicRes.json();
+      const usersData = await usersRes.json();
 
       setStats({
-        users: 1,
+        users: usersData.data.length || 0,
         music: musicData.pagination?.totalItems || 0,
         plays: musicData.music?.reduce((sum:number, m:any) => sum + (m.playCount || 0), 0) || 0,
         likes: musicData.music?.reduce((sum:number, m:any) => sum + (m.likeCount || 0), 0) || 0

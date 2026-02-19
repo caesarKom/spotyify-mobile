@@ -1,5 +1,5 @@
 import { ImageIcon, Upload, X } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { apiRequest } from "../../config/api"
 import type { Track } from "../../pages/music-page"
 import { useAuthImage } from "../../hooks/useAuthImage"
@@ -12,7 +12,7 @@ interface Props {
 }
 
 const EditMusicModal = ({ music, onClose, onSave }: Props) => {
-  const existImgage = useAuthImage(music.coverImage as string)
+  const existImage = useAuthImage(music.coverImage as string)
 
   const [formData, setFormData] = useState({
     title: music.title || "",
@@ -23,22 +23,28 @@ const EditMusicModal = ({ music, onClose, onSave }: Props) => {
     isPublic: music.isPublic || false,
   })
   const [coverImage, setCoverImage] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(existImgage || null)
+   const previewUrl = useMemo(() => {
+    if (coverImage) {
+      return URL.createObjectURL(coverImage)
+    }
+    return existImage
+  }, [coverImage, existImage])
+
+  // Cleanup dla blob URL
+  useEffect(() => {
+    return () => {
+      if (previewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setCoverImage(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setPreviewUrl(reader.result)
-        }
-      }
-      reader.readAsDataURL(file)
-    }
   }
-
+  }
   const handleSave = async () => {
     // First update the music data
     await onSave(formData as unknown as Track)

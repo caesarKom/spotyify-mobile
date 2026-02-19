@@ -10,13 +10,13 @@ export const useAuthImage = (imageUrl: string) => {
 
     const loadImage = async () => {
       try {
-        // Jeśli obraz jest publiczny, użyj bezpośrednio
+        // If the image is public, use it directly
         if (!imageUrl.includes('/uploads/')) {
           setImageSrc(imageUrl);
           return;
         }
 
-        // Dla obrazów chronionych, użyj fetch z autoryzacją
+        // For protected images, use fetch with authorization
         const response = await fetch(imageUrl, {
           headers: {
             'Authorization': `Bearer ${accessToken}`

@@ -1,5 +1,5 @@
 import { X, Trash2, Upload, ImageIcon, Plus } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import toast from "react-hot-toast"
 import { apiRequest } from "../../config/api"
 import { useAuthImage } from "../../hooks/useAuthImage"
@@ -25,11 +25,27 @@ const EditPlaylistModal = ({ playlist, onClose, onUpdated }: Props) => {
     playlist.tracks || []
   )
   const [cover, setCover] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(existingImage || null)
   const [music, setMusic] = useState<Track[]>([])
   const [showTrackPicker, setShowTrackPicker] = useState<boolean>(false)
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState<boolean>(true)
+
+   // ✅ Oblicz preview URL podczas renderowania
+  const preview = useMemo(() => {
+    if (cover) {
+      return URL.createObjectURL(cover)
+    }
+    return existingImage
+  }, [cover, existingImage])
+
+  // ✅ Cleanup dla blob URL
+  useEffect(() => {
+    return () => {
+      if (preview?.startsWith('blob:')) {
+        URL.revokeObjectURL(preview)
+      }
+    }
+  }, [preview])
 
   const openPicker = async () => {
     const res = await apiRequest("/music?page=1&limit=20")
@@ -48,13 +64,6 @@ const EditPlaylistModal = ({ playlist, onClose, onUpdated }: Props) => {
     const file = e.target.files?.[0]
     if (file) {
       setCover(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setPreview(reader.result)
-        }
-      }
-      reader.readAsDataURL(file)
     }
   }
 

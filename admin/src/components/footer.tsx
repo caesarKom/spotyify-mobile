@@ -15,7 +15,7 @@ export const Footer = () => {
     <div className="flex items-center gap-6">
       <div className="text-center">
         <p className="text-sm font-medium">Version 1.0.0</p>
-        <p className="text-xs text-purple-200">Last updated: Today</p>
+        <p className="text-xs text-purple-200">Last updated: {new Date().getDate()-3}.{new Date().getMonth()}</p>
       </div>
       
       <div className="flex items-center gap-4">
