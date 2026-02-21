@@ -569,12 +569,12 @@ export const uploadMusic = async (req, res) => {
     }
 
     // Walidacja typu pliku audio
-    const allowedAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/mp3'];
+    const allowedAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/mp3', 'audio/mp4'];
     if (!allowedAudioTypes.includes(req.file.mimetype)) {
       safeUnlink(req.file.path);
       return res.status(400).json({
         success: false,
-        message: "Invalid file type. Allowed: MP3, WAV, OGG, FLAC",
+        message: "Invalid file type. Allowed: MP3, MP4, WAV, OGG, FLAC",
       });
     }
 
@@ -684,12 +684,12 @@ export const uploadCoverImage = async (req, res) => {
     }
 
     // Walidacja typu obrazu
-    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedImageTypes.includes(req.file.mimetype)) {
       safeUnlink(req.file.path);
       return res.status(400).json({
         success: false,
-        message: "Invalid image type. Allowed: JPEG, PNG, WebP, GIF",
+        message: "Invalid image type. Allowed: JPEG, JPG, PNG, WebP, GIF",
       });
     }
 
