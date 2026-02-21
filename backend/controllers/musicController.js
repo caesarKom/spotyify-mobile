@@ -569,12 +569,15 @@ export const uploadMusic = async (req, res) => {
     }
 
     // Walidacja typu pliku audio
-    const allowedAudioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/mp3', 'audio/mp4'];
+    const allowedAudioTypes = [
+  'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/mp3',
+  'video/mp4', 'video/webm', 'video/ogg', 'video/x-matroska' // MKV
+];
     if (!allowedAudioTypes.includes(req.file.mimetype)) {
       safeUnlink(req.file.path);
       return res.status(400).json({
         success: false,
-        message: "Invalid file type. Allowed: MP3, MP4, WAV, OGG, FLAC",
+        message: "Invalid file type. Allowed: MP3, WAV, OGG, FLAC, MP4, WEBM",
       });
     }
 
