@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pobierz FunMusic APK - najlepsza aplikacja muzyczna na Androida"
+    />
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <title>FunMusic - Pobierz APK</title>
+  </head>
+  <body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+      <div class="card">
+        <div class="logo">🎵</div>
+
+        <div id="deviceBadge" class="device-badge">
+          <span>📱</span>
+          <span>Android</span>
+        </div>
+
+        <h1>FunMusic</h1>
+        <p class="subtitle">Najlepsza aplikacja muzyczna na Twoje urządzenie</p>
+
+        <a href="/downloads/funmusic.apk" class="download-btn" download>
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Pobierz APK
+        </a>
+
+        <div class="file-info">
+          <div class="info-item">
+            <span>📦</span>
+            <span>Wersja: <strong>1.0.0</strong></span>
+          </div>
+          <div class="info-item">
+            <span>💾</span>
+            <span>Rozmiar: <strong>~25 MB</strong></span>
+          </div>
+          <div class="info-item">
+            <span>🤖</span>
+            <span>Android: <strong>7.0+</strong></span>
+          </div>
+        </div>
+
+        <div class="warning-box" id="iosWarning">
+          <h4>
+            <span>⚠️</span>
+            Uwaga dla użytkowników iOS
+          </h4>
+          <p>
+            Plik APK jest przeznaczony tylko dla urządzeń z systemem Android.
+            iPhone/iPad wymagają formatu IPA, który nie jest dostępny.
+          </p>
+        </div>
+
+        <div class="instructions">
+          <h3>
+            <span>📋</span>
+            Jak zainstalować?
+          </h3>
+
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Pobierz plik</h4>
+              <p>
+                Kliknij przycisk "Pobierz APK" powyżej. Plik zostanie zapisany w
+                folderze Pobrane.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>Zezwól na instalację</h4>
+              <p>
+                Przejdź do Ustawienia → Bezpieczeństwo → Włącz "Nieznane źródła"
+                lub potwierdź okno dialogowe podczas instalacji.
+              </p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>Zainstaluj aplikację</h4>
+              <p>
+                Otwórz pobrany plik funmusic.apk i kliknij "Zainstaluj". Gotowe!
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="qr-section">
+          <p style="color: var(--gray); margin-bottom: 12px; font-size: 0.9rem">
+            Lub zeskanuj kod QR na telefonie:
+          </p>
+          <div class="qr-code">
+            <div class="qr-placeholder">
+              Wygeneruj QR<br />
+              dla tej strony
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>© 2024 FunMusic. Wszelkie prawa zastrzeżone.</p>
+        <p style="margin-top: 8px; opacity: 0.8">
+          <a href="#" style="color: inherit">Polityka prywatności</a> •
+          <a href="#" style="color: inherit">Kontakt</a>
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      // Detekcja urządzenia
+      function detectDevice() {
+        const userAgent = navigator.userAgent.toLowerCase()
+        const isAndroid = /android/.test(userAgent)
+        const isIOS = /iphone|ipad|ipod/.test(userAgent)
+
+        const badge = document.getElementById("deviceBadge")
+        const iosWarning = document.getElementById("iosWarning")
+
+        if (isIOS) {
+          badge.classList.add("ios")
+          badge.innerHTML = "<span>🍎</span><span>iOS</span>"
+          iosWarning.classList.add("show")
+        } else if (isAndroid) {
+          badge.innerHTML = "<span>🤖</span><span>Android</span>"
+        } else {
+          badge.innerHTML = "<span>💻</span><span>Desktop</span>"
+        }
+      }
+
+      // Generowanie cząsteczek tła
+      function createParticles() {
+        const container = document.getElementById("particles")
+        const particleCount = 20
+
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement("div")
+          particle.className = "particle"
+          particle.style.left = Math.random() * 100 + "%"
+          particle.style.animationDelay = Math.random() * 20 + "s"
+          particle.style.animationDuration = 15 + Math.random() * 10 + "s"
+          particle.style.width = 5 + Math.random() * 10 + "px"
+          particle.style.height = particle.style.width
+          container.appendChild(particle)
+        }
+      }
+
+      // Śledzenie pobierania
+      document
+        .querySelector(".download-btn")
+        .addEventListener("click", function (e) {
+          // Tutaj możesz dodać kod do śledzenia pobierania (np. Google Analytics)
+          console.log("Rozpoczęto pobieranie FunMusic APK")
+
+          // Opcjonalnie: pokazanie powiadomienia
+          if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            new Notification("FunMusic", {
+              body: "Pobieranie rozpoczęte!",
+              icon: "🎵",
+            })
+          }
+        })
+
+      // Inicjalizacja
+      document.addEventListener("DOMContentLoaded", function () {
+        detectDevice()
+        createParticles()
+
+        // Prośba o pozwolenie na powiadomienia (opcjonalnie)
+        if ("Notification" in window && Notification.permission === "default") {
+          Notification.requestPermission()
+        }
+      })
+
+      // Sprawdzenie czy plik istnieje (opcjonalnie)
+      fetch("/downloads/funmusic.apk", { method: "HEAD" })
+        .then((response) => {
+          if (!response.ok) {
+            console.warn("Plik APK może być niedostępny")
+          }
+        })
+        .catch(() => {
+          console.warn("Nie można sprawdzić dostępności pliku")
+        })
+    </script>
+  </body>
+</html>
